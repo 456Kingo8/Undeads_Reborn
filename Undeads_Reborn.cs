@@ -11,6 +11,7 @@ namespace Undeads_Reborn
             // 加载你的mod内容
             TraitGroups.init();
             Undead_Trait.init();
+            Undead_Status.init();
             // LogInfo(GetConfig()["Default"]["WhatToSay"].TextVal); // Call this only then you confirm it is a text config item
             LogInfo(GetConfig()["Default"]["WhatToSay"].GetValue() as string);
         }

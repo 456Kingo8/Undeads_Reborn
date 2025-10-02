@@ -10,14 +10,17 @@ namespace Undeads.Code
      {
         public static void init()
         {
-            ActorTrait trait = new ActorTrait()
+            ActorTrait LichLord = new ActorTrait()
             {
-                id = "Test",
+                id = "LichLord",
                 path_icon = "Icons/TestIcon",
                 group_id = "Undead",
+                special_locale_id = "LichLord_id",
+                special_locale_description = "LichLord_des",
+                action_attack_target = Undead_Action.LichLord_attack
             };
-            AssetManager.traits.add(trait);
-            setAchievementUnlock(trait, "achievementGreatPlague");
+            AssetManager.traits.add(LichLord);
+            setAchievementUnlock(LichLord, "achievementGreatPlague");
 
 
 
