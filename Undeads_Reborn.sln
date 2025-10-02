@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModTemplate", "ModTemplate.csproj", "{11C09ECE-47C9-4727-BF4E-6D1F9D409A88}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34009.444
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Undeads_Reborn", "Undeads_Reborn.csproj", "{11C09ECE-47C9-4727-BF4E-6D1F9D409A88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +15,8 @@ Global
 		{11C09ECE-47C9-4727-BF4E-6D1F9D409A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11C09ECE-47C9-4727-BF4E-6D1F9D409A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11C09ECE-47C9-4727-BF4E-6D1F9D409A88}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
