@@ -1,4 +1,5 @@
 {
-    "Default": "默认设置组",
-    "WhatToSay": "模组加载时打印的信息"
+  "Default": "默认设置组",
+  "WhatToSay": "模组加载时打印的信息",
+  "trait_group_Undead": "亡灵"
 }
