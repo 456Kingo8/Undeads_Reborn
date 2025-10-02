@@ -14,7 +14,7 @@ namespace Undeads.Code
             asset.id = "whisper_of_death";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 30;
-            asset.action_death = Undead_Action.turn_into_Undeads;
+            asset.action_death = Undead_Action.whisper_of_death_Action_death;
             asset.action = Undead_Action.whisper_of_death_Action;
             asset.locale_id = "whisper_of_death_id";
             asset.locale_description = "whisper_of_death_des";

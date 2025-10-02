@@ -10,7 +10,7 @@ namespace Undeads.Code
 {
     class Undead_Action
     {
-        public static bool turn_into_Undeads(BaseSimObject pTarget = null, WorldTile pTile = null)
+        public static bool turn_into_Undeads(BaseSimObject pTarget = null, WorldTile pTile = null,BaseSimObject pFrom = null)
         {
             Actor a = pTarget.a;
             if (a == null)
@@ -51,6 +51,10 @@ namespace Undeads.Code
                 {
                     actor.setName("Un" + Toolbox.LowerCaseFirst(a.getName()));
                 }
+                if(pFrom != null)
+                {
+                    actor.kingdom = pFrom.kingdom;
+                }
                 flag = true;
             }
 
@@ -59,7 +63,12 @@ namespace Undeads.Code
                 Actor tGhost = World.world.units.createNewUnit("ghost", pTile, false, 0f, null, null, true, false, false, false);
                 tGhost.removeTrait("blessed");
                 ActorTool.copyUnitToOtherUnit(pTarget.a, tGhost, true);
+                if (pFrom != null)
+                {
+                    tGhost.kingdom = pFrom.kingdom;
+                }
                 flag = true;
+
             }
             if(pTarget.a.asset.can_turn_into_zombie)
             {
@@ -84,16 +93,33 @@ namespace Undeads.Code
                 {
                     actor.setName("Un" + Toolbox.LowerCaseFirst(a.getName()));
                 }
+                if (pFrom != null)
+                {
+                    actor.kingdom = pFrom.kingdom;
+                }
                 flag = true;
             }
             if(flag)
             {
-                EffectsLibrary.spawn("fx_spawn", pTile);
+                EffectsLibrary.spawn("fx_spawn", a.current_tile);
                 a.setTransformed();
+            }
+            return flag;
+        }
+        public static bool whisper_of_death_Action_death(BaseSimObject pTarget = null, WorldTile pTile = null)
+        {
+            pTarget.a._active_status_dict.TryGetValue("whisper_of_death", out Status value);
+            if (value != null)
+            {
+                StatusExtend ext = value.GetExtend();
+                if (ext != null)
+                {
+                    turn_into_Undeads(pTarget, pTile, ext.pFrom);
+                }
             }
             return true;
         }
-        
+
         public static bool whisper_of_death_Action(BaseSimObject pTarget = null, WorldTile pTile = null)
         {
             if(pTarget.a.isAlive())
@@ -101,8 +127,18 @@ namespace Undeads.Code
                 pTarget.a.data.health = Mathf.Max(0, pTarget.a.data.health - Mathf.Max((int)(pTarget.a.getMaxHealth()* 0.04),2));
                 if (pTarget.a.data.health == 0)
                 {
-                    turn_into_Undeads(pTarget, pTile);
-                    pTarget.a.die(true, AttackType.Plague);
+                    pTarget.a._active_status_dict.TryGetValue("whisper_of_death", out Status value);
+                    if(value != null)
+                    {
+                        StatusExtend ext = value.GetExtend();
+                        if (ext != null)
+                        {
+                            bool flag = turn_into_Undeads(pTarget, pTile,ext.pFrom);
+                            pTarget.a.die(flag, AttackType.Plague);
+                        }
+                    }
+                    pTarget.a.die(false, AttackType.Plague);
+                    
                     
                 }
             }
@@ -111,23 +147,33 @@ namespace Undeads.Code
 
         public static bool LichLord_attack(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
-            if(pSelf.a.isAlive())
+            if(pTarget != null && pTarget.isActor() && pTarget.a.data.health <= 0) turn_into_Undeads(pTarget.a, pTile, pSelf);
+            if (pSelf.a.isAlive() && pTarget != null)
             {
-                foreach(Actor act in Finder.getUnitsFromChunk(pTile, 2, 10))
+                foreach(Actor act in Finder.getUnitsFromChunk(pTarget.current_tile, 2, 10))
                 {
-                    if (act.kingdom.asset.id != "undead")
+                    if (act.kingdom != pSelf.a.kingdom && !act.hasTag("Undead"))
                     {
-                        act.addStatusEffect("whisper_of_death");
+                        
                         act.data.health = Mathf.Max(0, act.data.health - Mathf.Max((int)(act.getMaxHealth() * 0.1), 20));
                         if (act.data.health == 0)
                         {
-                            turn_into_Undeads(act, pTile);
-                            act.die(true, AttackType.Plague);
+                            bool flag = turn_into_Undeads(act, pTile,pSelf);
+                            act.die(flag, AttackType.Plague);
+                            return true;
                         }
+                        act.addStatusEffect("whisper_of_death",pSelf.a);
                     }
                 }
             }
             return true;
         }
+
+        public static bool LichLord_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            pTarget.a.restoreHealthPercent(0.05f);
+            return LichLord_attack(pTarget,null,pTile);
+        }
+
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Undeads.Code;
 using NeoModLoader.api;
 
-namespace Undeads_Reborn
+namespace Undeads
 {
     public class Undeads_Reborn : BasicMod<Undeads_Reborn>
     {

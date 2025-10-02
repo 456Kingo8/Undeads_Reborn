@@ -17,8 +17,12 @@ namespace Undeads.Code
                 group_id = "Undead",
                 special_locale_id = "LichLord_id",
                 special_locale_description = "LichLord_des",
-                action_attack_target = Undead_Action.LichLord_attack
+                action_attack_target = Undead_Action.LichLord_attack,
+                action_special_effect = Undead_Action.LichLord_action,
+                
             };
+            LichLord.base_stats = new BaseStats();
+            LichLord.base_stats.addTag("Undead");
             AssetManager.traits.add(LichLord);
             setAchievementUnlock(LichLord, "achievementGreatPlague");
 
