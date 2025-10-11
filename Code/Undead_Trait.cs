@@ -23,6 +23,7 @@ namespace Undeads.Code
             };
             LichLord.base_stats = new BaseStats();
             LichLord.base_stats.addTag("Undead");
+            LichLord.spells = new List<SpellAsset>() {Undead_Spell.summon_undeads};
             AssetManager.traits.add(LichLord);
             setAchievementUnlock(LichLord, "achievementGreatPlague");
 

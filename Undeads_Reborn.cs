@@ -1,5 +1,6 @@
 ﻿using Undeads.Code;
 using NeoModLoader.api;
+using Undeads.Code.Behaviour;
 
 namespace Undeads
 {
@@ -10,8 +11,10 @@ namespace Undeads
             // Load your mod here
             // 加载你的mod内容
             TraitGroups.init();
-            Undead_Trait.init();
             Undead_Status.init();
+            Undead_Decision.init();//decision必须在spell之前
+            Undead_Spell.init();//spell必须在trait之前
+            Undead_Trait.init();
             // LogInfo(GetConfig()["Default"]["WhatToSay"].TextVal); // Call this only then you confirm it is a text config item
             LogInfo(GetConfig()["Default"]["WhatToSay"].GetValue() as string);
         }

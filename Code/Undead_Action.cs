@@ -175,5 +175,17 @@ namespace Undeads.Code
             return LichLord_attack(pTarget,null,pTile);
         }
 
+
+        public static bool summon_undead(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            WorldTile tTile;
+            int j = Randy.randomInt(6, 10);
+            for(int i = 0;i < j;i++)
+            {
+                tTile = pSelf.current_chunk.tiles.GetRandom();
+                ActionLibrary.spawnSkeleton(pSelf, tTile);
+            }
+            return true;
+        }
     }
 }
