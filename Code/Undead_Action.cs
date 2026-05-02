@@ -1,5 +1,6 @@
 ﻿using ai;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -186,6 +187,51 @@ namespace Undeads.Code
                 ActionLibrary.spawnSkeleton(pSelf, tTile);
             }
             return true;
+        }
+
+        public static IEnumerator Spread_Biome(BaseSimObject pTarget,string biome_id,bool overlay = false)
+        {
+            MonoBehaviour.print("debug2");
+            BiomeAsset biome = AssetManager.biome_library.get(biome_id);
+            if (pTarget == null || !pTarget.current_tile.Type.can_be_biome) yield break;
+            WorldTile tile = pTarget.current_tile;
+            TopTileType toptile,high,low;
+            if (tile.top_type == null || tile.top_type.id != biome.tile_high || tile.top_type.id != biome.tile_low)
+            {
+                MonoBehaviour.print("debug3");
+                high = AssetManager.top_tiles.get(biome.tile_high);
+                low = AssetManager.top_tiles.get(biome.tile_low);
+                Queue<Tuple<WorldTile,int>> q = new();
+                Dictionary<WorldTile, bool> dict = new Dictionary<WorldTile, bool>();
+                q.Enqueue(new Tuple<WorldTile, int>(tile,0));
+                dict.Add(tile, true);
+                int time = 0;
+                while (q.Count > 0)
+                {
+                    var t = q.Peek();
+                    q.Dequeue();
+                    if(Config.paused) yield return new WaitForSeconds(2f);
+                    if (!t.Item1.Type.can_be_biome) continue;
+                    if ((t.Item1.top_type == high || t.Item1.top_type == low) && !overlay) continue;
+                    if (time < t.Item2)
+                    {
+                        time++;
+                        yield return new WaitForSeconds(1f);
+                    }
+                    toptile = t.Item1.main_type.rank_type == TileRank.Low ? low : high;
+                    MapAction.growGreens(t.Item1, toptile);
+                    foreach (WorldTile pT in t.Item1.neighbours)
+                    {
+                        if (dict.ContainsKey(pT)) continue;
+                        else
+                        {
+                            dict.Add(pT, true);
+                            q.Enqueue(new Tuple<WorldTile, int>(pT, t.Item2 + 1));
+                        }
+                    }
+                }
+            }
+            yield break;
         }
     }
 }

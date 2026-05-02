@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Undeads.Code.Behaviour;
 
 namespace Undeads.Code
 {
@@ -24,11 +25,9 @@ namespace Undeads.Code
             LichLord.base_stats = new BaseStats();
             LichLord.base_stats.addTag("Undead");
             LichLord.spells = new List<SpellAsset>() {Undead_Spell.summon_undeads};
+            LichLord.decisions_assets = new DecisionAsset[] { Undead_Decision.speard_curse_biome };
             AssetManager.traits.add(LichLord);
             setAchievementUnlock(LichLord, "achievementGreatPlague");
-
-
-
             return;
         }
 

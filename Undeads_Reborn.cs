@@ -1,6 +1,7 @@
 ﻿using Undeads.Code;
 using NeoModLoader.api;
 using Undeads.Code.Behaviour;
+using UnityEngine;
 
 namespace Undeads
 {
@@ -8,6 +9,7 @@ namespace Undeads
     {
         protected override void OnModLoad()
         {
+            Config.isEditor = true;
             // Load your mod here
             // 加载你的mod内容
             TraitGroups.init();
