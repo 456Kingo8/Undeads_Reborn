@@ -189,7 +189,7 @@ namespace Undeads.Code
             return true;
         }
 
-        public static IEnumerator Spread_Biome(BaseSimObject pTarget,string biome_id,bool overlay = false)
+        public static IEnumerator Spread_Biome(BaseSimObject pTarget,string biome_id,int depth,bool overlay = false)
         {
             MonoBehaviour.print("debug2");
             BiomeAsset biome = AssetManager.biome_library.get(biome_id);
@@ -215,6 +215,7 @@ namespace Undeads.Code
                     if ((t.Item1.top_type == high || t.Item1.top_type == low) && !overlay) continue;
                     if (time < t.Item2)
                     {
+                        if (time > depth) yield break;
                         time++;
                         yield return new WaitForSeconds(1f);
                     }

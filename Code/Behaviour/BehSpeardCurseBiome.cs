@@ -8,7 +8,7 @@ namespace Undeads.Code.Behaviour
         public override BehResult execute(Actor pObject)
         {
             MonoBehaviour.print("debug1");
-            World.world.StartCoroutine(Undead_Action.Spread_Biome(pObject, "biome_corrupted",false));
+            World.world.StartCoroutine(Undead_Action.Spread_Biome(pObject, "biome_corrupted",10,false));
             return BehResult.Continue;
         }
     }
