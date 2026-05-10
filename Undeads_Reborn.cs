@@ -2,6 +2,7 @@
 using NeoModLoader.api;
 using Undeads.Code.Behaviour;
 using UnityEngine;
+using NeoModLoader.utils;
 
 namespace Undeads
 {

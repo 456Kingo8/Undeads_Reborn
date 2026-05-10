@@ -13,24 +13,27 @@ namespace Undeads.Code.Behaviour
         public static DecisionAsset speard_curse_biome = new DecisionAsset();
         public static void init()
         {
+            int count = AssetManager.decisions_library.list.Count()+1;
             DecisionAsset dec = new DecisionAsset();
             dec.id = "summon_undeads";
-            dec.priority = NeuroLayer.Layer_4_Critical;
+            dec.priority = NeuroLayer.Layer_3_High;
             dec.path_icon = "Icons/TestIcon";
-            dec.cooldown = 10;
+            dec.cooldown = 1;
             dec.unique = true;
-            dec.weight = 2f;
+            dec.weight = 10f;
+            dec.decision_index = count++;
             AssetManager.decisions_library.add(dec);
             summon_undeads = dec;
             add_Task(dec.id, "Icons/TestIcon", new BehSummonUndeads());
 
             dec = new DecisionAsset();
             dec.id = "speard_curse_biome";
-            dec.priority = NeuroLayer.Layer_4_Critical;
+            dec.priority = NeuroLayer.Layer_2_Moderate;
             dec.path_icon = "Icons/TestIcon";
             dec.cooldown = 8;
             dec.unique = true;
             dec.weight = 2f;
+            dec.decision_index = count++;
             AssetManager.decisions_library.add(dec);
             speard_curse_biome = dec;
             add_Task(dec.id, "Icons/TestIcon", new BehSpeardCurseBiome());

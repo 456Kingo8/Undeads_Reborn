@@ -123,25 +123,21 @@ namespace Undeads.Code
 
         public static bool whisper_of_death_Action(BaseSimObject pTarget = null, WorldTile pTile = null)
         {
-            if(pTarget.a.isAlive())
+            pTarget.a._active_status_dict.TryGetValue("whisper_of_death", out Status value);
+            StatusExtend ext = value?.GetExtend();
+            if(ext != null && ext.pFrom != null && ext.pFrom.kingdom == pTarget.kingdom)
             {
-                pTarget.a.data.health = Mathf.Max(0, pTarget.a.data.health - Mathf.Max((int)(pTarget.a.getMaxHealth()* 0.04),2));
-                if (pTarget.a.data.health == 0)
+                return false;
+            }
+            pTarget.a.data.health = Mathf.Max(0, pTarget.a.data.health - Mathf.Max((int)(pTarget.a.getMaxHealth() * 0.04), 2));
+            if (pTarget.a.data.health == 0)
+            {
+                if (value != null && ext != null)
                 {
-                    pTarget.a._active_status_dict.TryGetValue("whisper_of_death", out Status value);
-                    if(value != null)
-                    {
-                        StatusExtend ext = value.GetExtend();
-                        if (ext != null)
-                        {
-                            bool flag = turn_into_Undeads(pTarget, pTile,ext.pFrom);
-                            pTarget.a.die(flag, AttackType.Plague);
-                        }
-                    }
-                    pTarget.a.die(false, AttackType.Plague);
-                    
-                    
+                    bool flag = turn_into_Undeads(pTarget, pTile, ext.pFrom);
+                    pTarget.a.die(flag, AttackType.Plague);
                 }
+                pTarget.a.die(false, AttackType.Plague);
             }
             return true;
         }
@@ -179,55 +175,59 @@ namespace Undeads.Code
 
         public static bool summon_undead(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
-            WorldTile tTile;
-            int j = Randy.randomInt(6, 10);
-            for(int i = 0;i < j;i++)
-            {
-                tTile = pSelf.current_chunk.tiles.GetRandom();
-                ActionLibrary.spawnSkeleton(pSelf, tTile);
-            }
+            World.world.StartCoroutine(Spread_Biome(pSelf, "biome_corrupted",8,0.1f,true,summon));
             return true;
+
+            bool summon(BaseSimObject pTarget, WorldTile pTile = null)
+            {
+                if(Randy.randomChance(0.4f))
+                {
+                    ActionLibrary.spawnSkeleton(pTarget, pTile);
+                }
+                return true;
+            }
+
         }
 
-        public static IEnumerator Spread_Biome(BaseSimObject pTarget,string biome_id,int depth,bool overlay = false)
+        public static IEnumerator Spread_Biome(BaseSimObject pTarget,string biome_id,int range,float delay_time = 1f,bool overlay = false,WorldAction action = null)
         {
-            MonoBehaviour.print("debug2");
             BiomeAsset biome = AssetManager.biome_library.get(biome_id);
             if (pTarget == null || !pTarget.current_tile.Type.can_be_biome) yield break;
             WorldTile tile = pTarget.current_tile;
             TopTileType toptile,high,low;
-            if (tile.top_type == null || tile.top_type.id != biome.tile_high || tile.top_type.id != biome.tile_low)
+            if (tile.top_type == null || tile.top_type.id != biome.tile_high || tile.top_type.id != biome.tile_low || overlay)
             {
-                MonoBehaviour.print("debug3");
                 high = AssetManager.top_tiles.get(biome.tile_high);
                 low = AssetManager.top_tiles.get(biome.tile_low);
                 Queue<Tuple<WorldTile,int>> q = new();
-                Dictionary<WorldTile, bool> dict = new Dictionary<WorldTile, bool>();
+                Dictionary<WorldTile, bool> dict = new();
                 q.Enqueue(new Tuple<WorldTile, int>(tile,0));
                 dict.Add(tile, true);
-                int time = 0;
+                int cnt = 0;
                 while (q.Count > 0)
                 {
-                    var t = q.Peek();
+                    var t = q.Peek().Item1;
+                    var depth = q.Peek().Item2;
                     q.Dequeue();
-                    if(Config.paused) yield return new WaitForSeconds(2f);
-                    if (!t.Item1.Type.can_be_biome) continue;
-                    if ((t.Item1.top_type == high || t.Item1.top_type == low) && !overlay) continue;
-                    if (time < t.Item2)
+                    while (Config.paused) yield return new WaitForSeconds(0.4f);
+                    if (!t.Type.can_be_biome) continue;
+                    if ((t.top_type == high || t.top_type == low) && !overlay) continue;
+                    if (cnt < depth)
                     {
-                        if (time > depth) yield break;
-                        time++;
-                        yield return new WaitForSeconds(1f);
+                        if (cnt > range) yield break;
+                        cnt++;
+                        yield return new WaitForSeconds(delay_time / Config.time_scale_asset.multiplier);
                     }
-                    toptile = t.Item1.main_type.rank_type == TileRank.Low ? low : high;
-                    MapAction.growGreens(t.Item1, toptile);
-                    foreach (WorldTile pT in t.Item1.neighbours)
+                    toptile = t.main_type.rank_type == TileRank.Low ? low : high;
+                    MapAction.growGreens(t, toptile);
+                    action?.RunAnyTrue(pTarget,t);
+                    foreach (WorldTile pT in t.neighbours)
                     {
                         if (dict.ContainsKey(pT)) continue;
                         else
                         {
                             dict.Add(pT, true);
-                            q.Enqueue(new Tuple<WorldTile, int>(pT, t.Item2 + 1));
+                            q.Enqueue(new Tuple<WorldTile, int>(pT, depth + 1));
                         }
                     }
                 }
