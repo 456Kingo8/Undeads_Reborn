@@ -14,7 +14,7 @@ namespace Undeads.Code
         {
             SpellAsset spell = new SpellAsset();
             spell.id = "summon_undeads";
-            spell.cost_mana = 10;
+            spell.cost_mana = 30;
             spell.cast_target = CastTarget.Himself;
             spell.can_be_used_in_combat = true;
             spell.min_distance = 0;
@@ -23,6 +23,16 @@ namespace Undeads.Code
             AssetManager.spells.add(spell);
             summon_undeads = spell;
 
+            spell = new SpellAsset();
+            spell.id = "speard_curse_biome";
+            spell.cost_mana = 20;
+            spell.cast_target = CastTarget.Himself;
+            spell.can_be_used_in_combat = true;
+            spell.min_distance = 0;
+            spell.action = Undead_Action.speard_curse_biome;
+            spell.decisions_assets = new DecisionAsset[] { Undead_Decision.speard_curse_biome };
+            AssetManager.spells.add(spell);
+            summon_undeads = spell;
         }
 
     }

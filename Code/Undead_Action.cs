@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UnityEngine;
 
 namespace Undeads.Code
@@ -186,8 +187,37 @@ namespace Undeads.Code
                 }
                 return true;
             }
-
         }
+
+        public static bool speard_curse_biome(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            World.world.StartCoroutine(Undead_Action.Spread_Biome(pSelf, "biome_corrupted", 10));
+            return true;
+        }
+        /// <summary>
+        /// 一个基于协程的宽度优先搜索，用于批量修改群系
+        /// <example>
+        /// <para>例如:</para>
+        ///     <code>
+        ///         World.world.StartCoroutine(Spread_Biome(pTarget:actor, biome_id:"biome_corrupted",range:8 ,delay_time:0.5f,action:testAction));
+        ///         
+        ///         void testAction(BaseSimObject pTarget, WorldTile pTile = null)
+        ///         {
+        ///             return;
+        ///         }
+        ///     </code>
+        ///     可在生物actor所在格子为起始点，产生哈夫曼距离8格的诅咒之地扩散，每次扩散间隔0.5秒，
+        ///     <para>每扩散一格进行一次<c>testAction</c>调用</para>
+        ///     <para><c>testAction</c>参数中  <c>pTarget</c>为<c>actor</c>,<c>pTile</c>为对应格子</para>
+        /// </example>
+        /// </summary>
+        /// <param name="pTarget">一个生物，对应群系扩散的起始格子</param>
+        /// <param name="biome_id">所需扩散的群系</param>
+        /// <param name="range">扩散范围(哈夫曼距离)</param>
+        /// <param name="delay_time">每次扩散之间延迟时间</param>
+        /// <param name="overlay">是否允许群系重叠扩散</param>
+        /// <param name="action">自定义<c>WorldAction</c>,每次扩散时在所扩散的格子调用</param>
+        /// <returns></returns>
 
         public static IEnumerator Spread_Biome(BaseSimObject pTarget,string biome_id,int range,float delay_time = 1f,bool overlay = false,WorldAction action = null)
         {
