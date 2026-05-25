@@ -20,6 +20,14 @@ namespace Undeads.Code
             asset.locale_description = "whisper_of_death_des";
             asset.action_interval = 0.1f;
             AssetManager.status.add(asset);
+
+            asset = new StatusAsset();
+            asset.id = "Undead_Battle_Continue";
+            asset.path_icon = "Icons/iconNecromancer";
+            asset.duration = 5f;
+            asset.locale_id = "Undead_Battle_Continue_status_id";
+            asset.locale_description = "Undead_Battle_Continue_status_des";
+            AssetManager.status.add(asset);
         }
     }
 }

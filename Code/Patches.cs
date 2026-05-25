@@ -18,11 +18,19 @@ namespace Undeads.Code
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Actor), "die")]
-        public static bool Actor_die(Actor __instance)
+        public static bool Actor_die(Actor __instance,ref AttackType pType,ref bool pCountDeath,ref bool pLogFavorite)
         {
-            if (__instance.isAlive() && __instance.hasTrait("LichLord"))
+            if (__instance.hasStatus("Undead_Battle_Continue")) return false;
+            if(__instance.hasReligion() && __instance.religion.hasTrait("Undead_Battle_Continue") && !__instance.hasTrait("death_mark"))
             {
-                MonoBehaviour.print("debug1");
+                __instance.data.health = 1;
+                __instance.addStatusEffect("Undead_Battle_Continue");
+                World.world.StartCoroutine(Undead_Action.Battle_Continue(__instance,pType,pCountDeath,pLogFavorite));
+                return false;
+            }
+
+            if (__instance.isAlive() && __instance.hasTrait("LichLord") && __instance.data.health == 0)
+            {
                 BiomeAsset biomeAsset = AssetManager.biome_library.get("biome_corrupted");
                 WorldTile worldTile = null;
                 if (biomeAsset.getTileHigh().hashset.Count > 0)

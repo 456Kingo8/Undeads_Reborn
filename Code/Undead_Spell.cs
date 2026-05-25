@@ -10,6 +10,7 @@ namespace Undeads.Code
     class Undead_Spell
     {
         public static SpellAsset summon_undeads = new SpellAsset();
+        public static SpellAsset speard_curse_biome = new SpellAsset();
         public static void init()
         {
             SpellAsset spell = new SpellAsset();
@@ -32,7 +33,7 @@ namespace Undeads.Code
             spell.action = Undead_Action.speard_curse_biome;
             spell.decisions_assets = new DecisionAsset[] { Undead_Decision.speard_curse_biome };
             AssetManager.spells.add(spell);
-            summon_undeads = spell;
+            speard_curse_biome = spell;
         }
 
     }

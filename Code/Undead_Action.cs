@@ -1,4 +1,5 @@
 ﻿using ai;
+using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +13,19 @@ namespace Undeads.Code
 {
     class Undead_Action
     {
+
+        public static List<string> zombie_id = new List<string>() { "zombie_dragon", "zombie_human", "zombie_elf", "zombie_orc", "zombie_dwarf", "zombie_animal_fox", "zombie_animal_buffalo", "zombie_animal_hyena", "zombie_animal_crocodile", "zombie_animal_monkey", "zombie_animal_rhino", "zombie_animal_frog", "zombie_animal_snake", "zombie_animal_dog", "zombie_animal_wolf", "zombie_animal_bear", "zombie_animal_piranha", "zombie_animal_rabbit", "zombie_animal_cat", "zombie_animal_raccoon", "zombie_animal_seal", "zombie_animal_ostrich", "zombie_animal_unicorn", "zombie_animal_rat", "zombie_animal_chicken", "zombie_animal_sheep", "zombie_animal_cow", "zombie_animal_penguin", "zombie_animal_armadillo", "zombie_animal_alpaca", "zombie_animal_capybara", "zombie_animal_goat", "zombie_animal_scorpion", "zombie_animal_turtle", "zombie_animal_crab", "zombie_animal_crystal_sword", "zombie_animal_smore", "zombie_animal_acid_blob", "zombie_animal_flower_bud", "zombie_animal_lemon_snail", "zombie_animal_garl", "zombie_bee", "zombie_fly", "zombie_butterfly", "zombie_grasshopper", "zombie_beetle", "zombie_cold_one", "zombie_necromancer", "zombie_druid", "zombie_plague_doctor", "zombie_white_mage", "zombie_evil_mage", "zombie_demon", "zombie_animal_fairy", "zombie_bandit", "zombie_alien", "zombie_civ_cat", "zombie_civ_dog", "zombie_civ_chicken", "zombie_civ_rabbit", "zombie_civ_monkey", "zombie_civ_fox", "zombie_civ_sheep", "zombie_civ_cow", "zombie_civ_armadillo", "zombie_civ_wolf", "zombie_civ_bear", "zombie_civ_rhino", "zombie_civ_buffalo", "zombie_civ_hyena", "zombie_civ_rat", "zombie_civ_alpaca", "zombie_civ_capybara", "zombie_civ_goat", "zombie_civ_scorpion", "zombie_civ_crab", "zombie_civ_penguin", "zombie_civ_turtle", "zombie_civ_crocodile", "zombie_civ_snake", "zombie_civ_frog", "zombie_civ_piranha", "zombie_civ_liliar", "zombie_civ_garlic_man", "zombie_civ_lemon_man", "zombie_civ_acid_gentleman", "zombie_civ_crystal_golem", "zombie_civ_candy_man", "zombie_civ_beetle", "zombie_civ_seal", "zombie_civ_unicorn", "zombie_greg" };
+        public static void init()
+        {
+            foreach(ActorAsset asset in AssetManager.actor_library.list)
+            {
+                if(asset.id.Contains("zombie"))
+                {
+                    zombie_id.Add(asset.id);
+                }
+            }
+            MonoBehaviour.print(zombie_id.ToJson());
+        }
         public static bool turn_into_Undeads(BaseSimObject pTarget = null, WorldTile pTile = null,BaseSimObject pFrom = null)
         {
             Actor a = pTarget.a;
@@ -170,6 +184,7 @@ namespace Undeads.Code
         public static bool LichLord_action(BaseSimObject pTarget, WorldTile pTile = null)
         {
             pTarget.a.restoreHealthPercent(0.05f);
+            pTarget.a.restoreManaPercent(0.02f);
             return LichLord_attack(pTarget,null,pTile);
         }
 
@@ -184,6 +199,11 @@ namespace Undeads.Code
                 if(Randy.randomChance(0.4f))
                 {
                     ActionLibrary.spawnSkeleton(pTarget, pTile);
+                }
+                else if(Randy.randomChance(0.33f))
+                {
+                    World.world.units.createNewUnit(zombie_id.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
+                    EffectsLibrary.spawn("fx_spawn", pTile);
                 }
                 return true;
             }
@@ -264,5 +284,18 @@ namespace Undeads.Code
             }
             yield break;
         }
+
+        public static IEnumerator Battle_Continue(Actor actor,AttackType pType,bool pCountDeath,bool pLogFavorite)
+        {
+            BaseSimObject a = actor.attackedBy;
+            while(actor != null && actor.hasStatus("Undead_Battle_Continue")) yield return new WaitForSeconds(0.5f);
+            if(actor != null)
+            {
+                actor.attackedBy = a;
+                actor.addTrait("death_mark");
+                actor.die(false, pType, pCountDeath, pLogFavorite);
+            }
+        }
+
     }
 }

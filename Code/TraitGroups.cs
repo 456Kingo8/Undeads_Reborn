@@ -10,12 +10,17 @@ namespace Undeads.Code
     {
         public static void init()
         {
-            ActorTraitGroupAsset Undead = new ActorTraitGroupAsset();
-            Undead.id = "Undead";
-            Undead.name = "trait_group_Undead";
-            Undead.color = "#480073";
-            AssetManager.trait_groups.add(Undead);
+            ActorTraitGroupAsset Undead_actor = new ActorTraitGroupAsset();
+            Undead_actor.id = "Undead";
+            Undead_actor.name = "actor_trait_group_Undead";
+            Undead_actor.color = "#480073";
+            AssetManager.trait_groups.add(Undead_actor);
 
+            ReligionTraitGroupAsset Undead_religion = new ReligionTraitGroupAsset();
+            Undead_religion.id = "Undead";
+            Undead_religion.name = "religion_trait_group_Undead";
+            Undead_religion.color = "#480073";
+            AssetManager.religion_trait_groups.add(Undead_religion);
             //ActorTraitGroupAsset Shengs = new ActorTraitGroupAsset();
             //Shengs.id = "Blessed";
             //Shengs.name = "trait_group_Blessed";

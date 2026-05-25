@@ -1,10 +1,16 @@
 {
   "Default": "默认设置组",
   "WhatToSay": "模组加载时打印的信息",
-  "trait_group_Undead": "亡灵",
+  "actor_trait_group_Undead": "亡灵",
+  "religion_trait_group_Undead": "亡灵",
   "trait_LichLord": "亡灵君王",
   "whisper_of_death_id": "死亡低语",
   "whisper_of_death_des": "你听到了来自亡灵的呢喃\n血肉消融 灵魂震颤\n死亡即是归宿",
   "LichLord_id": "亡灵君主",
-  "LichLord_des": "也可以叫巫妖王"
+  "LichLord_des": "也可以叫巫妖王",
+  "Undead_Battle_Continue_status_id": "战斗续行",
+  "Undead_Battle_Continue_status_dec": "死亡绝非终点",
+  "Undead_Battle_Continue_religion_id": "战斗续行",
+  "Undead_Battle_Continue_religion_dec": "当信徒死亡时，延缓死亡5秒"
+
 }
