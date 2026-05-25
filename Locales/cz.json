@@ -9,8 +9,8 @@
   "LichLord_id": "亡灵君主",
   "LichLord_des": "也可以叫巫妖王",
   "Undead_Battle_Continue_status_id": "战斗续行",
-  "Undead_Battle_Continue_status_dec": "死亡绝非终点",
+  "Undead_Battle_Continue_status_des": "死亡绝非终点",
   "Undead_Battle_Continue_religion_id": "战斗续行",
-  "Undead_Battle_Continue_religion_dec": "当信徒死亡时，延缓死亡5秒"
+  "Undead_Battle_Continue_religion_des": "当信徒死亡时，延缓死亡5秒"
 
 }

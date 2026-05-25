@@ -1,8 +1,8 @@
 {
-    "name": "CHANGEME",
-    "author": "CHANGEME",
-    "version": "1.0.0",
-    "description": "This is a template for a mod",
-    "RepoUrl": "https://github.com/author/name",
-    "iconPath": "icon.png"
+  "name": "亡灵天灾",
+  "author": "456Kingo8",
+  "version": "0.0.1",
+  "description": "0.51重构版亡灵天灾",
+  "RepoUrl": "https://github.com/456Kingo8/Undeads_Reborn",
+  "iconPath": "icon.png"
 }
