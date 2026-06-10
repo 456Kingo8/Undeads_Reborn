@@ -3,6 +3,7 @@ using NeoModLoader.api;
 using Undeads.Code.Behaviour;
 using UnityEngine;
 using NeoModLoader.utils;
+using UnityEngine.PlayerLoop;
 
 namespace Undeads
 {
@@ -19,6 +20,8 @@ namespace Undeads
             Undead_Spell.init();//spell必须在trait之前
             Undead_Trait.init();
             Undead_ReligionTrait.init();
+            Undead_Resource.init();
+            Undead_Plot.init();
             Patches.init();
             Undead_Action.init();
             // LogInfo(GetConfig()["Default"]["WhatToSay"].TextVal); // Call this only then you confirm it is a text config item

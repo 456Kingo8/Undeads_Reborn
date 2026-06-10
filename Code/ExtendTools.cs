@@ -29,5 +29,11 @@ namespace Undeads.Code
             StatusExtend extend = stat.GetExtend();
             extend.pFrom = pFrom;
         }
+
+
+        public static bool has_Undead_Trait(this Religion religion, string str, int phrase)
+        {
+            return religion.hasTrait(str) || religion.hasTrait($"Undeads_Phrase_{phrase}_finish");
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace Undeads.Code
                     zombie_id.Add(asset.id);
                 }
             }
-            MonoBehaviour.print(zombie_id.ToJson());
+            //MonoBehaviour.print(zombie_id.ToJson());
         }
         public static bool turn_into_Undeads(BaseSimObject pTarget = null, WorldTile pTile = null,BaseSimObject pFrom = null)
         {
@@ -285,17 +285,11 @@ namespace Undeads.Code
             yield break;
         }
 
-        public static IEnumerator Battle_Continue(Actor actor,AttackType pType,bool pCountDeath,bool pLogFavorite)
+        public static bool Battle_Continue_finish(BaseSimObject pTarget, WorldTile pTile = null)
         {
-            BaseSimObject a = actor.attackedBy;
-            while(actor != null && actor.hasStatus("Undead_Battle_Continue")) yield return new WaitForSeconds(0.5f);
-            if(actor != null)
-            {
-                actor.attackedBy = a;
-                actor.addTrait("death_mark");
-                actor.die(false, pType, pCountDeath, pLogFavorite);
-            }
+            pTarget.a.addTrait("death_mark");
+            pTarget.a.die();
+            return true;
         }
-
     }
 }

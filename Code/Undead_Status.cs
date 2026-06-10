@@ -24,10 +24,13 @@ namespace Undeads.Code
             asset = new StatusAsset();
             asset.id = "Undead_Battle_Continue";
             asset.path_icon = "Icons/iconNecromancer";
-            asset.duration = 5f;
+            asset.duration = 10f;
             asset.locale_id = "Undead_Battle_Continue_status_id";
             asset.locale_description = "Undead_Battle_Continue_status_des";
+            asset.action_finish = Undead_Action.Battle_Continue_finish;
             AssetManager.status.add(asset);
         }
+
+
     }
 }

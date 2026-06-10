@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Undeads.Code
 {
@@ -21,6 +22,16 @@ namespace Undeads.Code
             Undead_religion.name = "religion_trait_group_Undead";
             Undead_religion.color = "#480073";
             AssetManager.religion_trait_groups.add(Undead_religion);
+
+            for(int i = 1;i <= 5;i++)
+            {
+                ReligionTraitGroupAsset t = new ReligionTraitGroupAsset();
+                t.id = "Undead_Phrase_"+i;
+                t.name = "religion_trait_group_Undead_Phrase_" + i;
+                t.color = "#480073";
+                AssetManager.religion_trait_groups.add(t);
+                MonoBehaviour.print(t.name);
+            }
             //ActorTraitGroupAsset Shengs = new ActorTraitGroupAsset();
             //Shengs.id = "Blessed";
             //Shengs.name = "trait_group_Blessed";
