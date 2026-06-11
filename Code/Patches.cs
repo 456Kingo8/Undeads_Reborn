@@ -21,9 +21,10 @@ namespace Undeads.Code
         public static bool Actor_die(Actor __instance,ref AttackType pType,ref bool pCountDeath,ref bool pLogFavorite)
         {
             if (__instance.hasStatus("Undead_Battle_Continue") && !__instance.hasTrait("death_mark")) return false;
-            if(__instance.hasReligion() && __instance.religion.has_Undead_Trait(SUndead.Undeads_Phrase_1_special,1) && !__instance.hasTrait("death_mark"))
+            if(__instance.hasReligion() && __instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_1_special,1) && !__instance.hasTrait("death_mark"))
             {
                 __instance.data.health = 1;
+                __instance._alive = true;
                 __instance.addStatusEffect("Undead_Battle_Continue");
                 return false;
             }
@@ -58,7 +59,7 @@ namespace Undeads.Code
                 }
             }
 
-            if(__instance.hasReligion() && __instance.religion.hasTrait(SUndead.Undeads_Phrase_1_soul))
+            if(__instance.hasReligion() && __instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_1_soul,1))
             {
                 if(__instance.city!= null && __instance.city.storages.Count > 0)
                 {
@@ -67,5 +68,55 @@ namespace Undeads.Code
             }
             return true;
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Actor), "pickupResourcesFromKill")]
+        public static void Actor_pickupResourcesFromKill(Actor pAttacker)
+        {
+            if(pAttacker.religion == null) return;
+            if (pAttacker.religion.has_Undead_Trait(SUndead.Undead_Phrase_2_soul,2) && pAttacker.city != null && pAttacker.city.storages.Count > 0)
+            {
+                pAttacker.city.storages.GetRandom()?.addResources("Undead_Soul_Pieces", 1);
+            }
+            return;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionLibrary), "spawnGhost")]
+        public static bool ActionLibrary_spawnGhost(ref BaseSimObject pTarget)
+        {
+            if (pTarget.isActor() && pTarget.a.hasReligion() && pTarget.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_2_corrupt, 2))
+            {
+                return false;
+            }
+            if (pTarget.isActor() && pTarget.a.asset.id.Contains("zombie")&&pTarget.a.kingdom.isCiv())
+            {
+                return false;
+            }
+            return true;
+        }
+
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionLibrary), "giveCursed")]
+        public static bool ActionLibrary_giveCursed(ref BaseSimObject pActor)
+        {
+            if (pActor.a.hasReligion() && pActor.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_2_corrupt, 2))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        //[HarmonyPrefix]
+        //[HarmonyPatch(typeof(ActionLibrary), "giveCursed")]
+        //public static bool ActionLibrary_giveCursed(ref BaseSimObject pActor)
+        //{
+        //    if (pActor.a.hasReligion() && pActor.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_3_corrupt, 3))
+        //    {
+        //        return false;
+        //    }
+        //    return true;
+        //}
     }
 }

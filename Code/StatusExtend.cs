@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace Undeads.Code
 {
-    public class StatusExtend
+    public class FromExtend
     {
         public Actor pFrom;
-
     }
 }

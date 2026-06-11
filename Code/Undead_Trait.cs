@@ -28,6 +28,20 @@ namespace Undeads.Code
             LichLord.decisions_assets = new DecisionAsset[] { Undead_Decision.speard_curse_biome };
             AssetManager.traits.add(LichLord);
             setAchievementUnlock(LichLord, "achievementGreatPlague");
+
+            ActorTrait Undead = new ActorTrait()
+            {
+                id = "Undead_flag",
+                path_icon = "Icons/TestIcon",
+                group_id = "Undead",
+                special_locale_id = "Undead_flag_id",
+                special_locale_description = "Undead_flag_des",
+                action_attack_target = Undead_Action.Undead_attack,
+                action_special_effect = Undead_Action.Undead_action
+            };
+            Undead.base_stats = new BaseStats();
+            Undead.base_stats["mana"] = 30;
+            AssetManager.traits.add(Undead);
             return;
         }
 

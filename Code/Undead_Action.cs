@@ -1,5 +1,6 @@
 ﻿using ai;
 using HarmonyLib;
+using NeoModLoader.api.attributes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,17 +15,10 @@ namespace Undeads.Code
     class Undead_Action
     {
 
-        public static List<string> zombie_id = new List<string>() { "zombie_dragon", "zombie_human", "zombie_elf", "zombie_orc", "zombie_dwarf", "zombie_animal_fox", "zombie_animal_buffalo", "zombie_animal_hyena", "zombie_animal_crocodile", "zombie_animal_monkey", "zombie_animal_rhino", "zombie_animal_frog", "zombie_animal_snake", "zombie_animal_dog", "zombie_animal_wolf", "zombie_animal_bear", "zombie_animal_piranha", "zombie_animal_rabbit", "zombie_animal_cat", "zombie_animal_raccoon", "zombie_animal_seal", "zombie_animal_ostrich", "zombie_animal_unicorn", "zombie_animal_rat", "zombie_animal_chicken", "zombie_animal_sheep", "zombie_animal_cow", "zombie_animal_penguin", "zombie_animal_armadillo", "zombie_animal_alpaca", "zombie_animal_capybara", "zombie_animal_goat", "zombie_animal_scorpion", "zombie_animal_turtle", "zombie_animal_crab", "zombie_animal_crystal_sword", "zombie_animal_smore", "zombie_animal_acid_blob", "zombie_animal_flower_bud", "zombie_animal_lemon_snail", "zombie_animal_garl", "zombie_bee", "zombie_fly", "zombie_butterfly", "zombie_grasshopper", "zombie_beetle", "zombie_cold_one", "zombie_necromancer", "zombie_druid", "zombie_plague_doctor", "zombie_white_mage", "zombie_evil_mage", "zombie_demon", "zombie_animal_fairy", "zombie_bandit", "zombie_alien", "zombie_civ_cat", "zombie_civ_dog", "zombie_civ_chicken", "zombie_civ_rabbit", "zombie_civ_monkey", "zombie_civ_fox", "zombie_civ_sheep", "zombie_civ_cow", "zombie_civ_armadillo", "zombie_civ_wolf", "zombie_civ_bear", "zombie_civ_rhino", "zombie_civ_buffalo", "zombie_civ_hyena", "zombie_civ_rat", "zombie_civ_alpaca", "zombie_civ_capybara", "zombie_civ_goat", "zombie_civ_scorpion", "zombie_civ_crab", "zombie_civ_penguin", "zombie_civ_turtle", "zombie_civ_crocodile", "zombie_civ_snake", "zombie_civ_frog", "zombie_civ_piranha", "zombie_civ_liliar", "zombie_civ_garlic_man", "zombie_civ_lemon_man", "zombie_civ_acid_gentleman", "zombie_civ_crystal_golem", "zombie_civ_candy_man", "zombie_civ_beetle", "zombie_civ_seal", "zombie_civ_unicorn", "zombie_greg" };
+        public static List<string> zombie_id = new List<string>() {"zombie_human", "zombie_elf", "zombie_orc", "zombie_dwarf", "zombie_animal_fox", "zombie_animal_buffalo", "zombie_animal_monkey", "zombie_animal_rhino", "zombie_animal_frog", "zombie_animal_snake", "zombie_animal_dog", "zombie_animal_wolf", "zombie_animal_bear", "zombie_grasshopper", "zombie_necromancer", "zombie_plague_doctor", "zombie_white_mage", "zombie_evil_mage" };
         public static void init()
         {
-            foreach(ActorAsset asset in AssetManager.actor_library.list)
-            {
-                if(asset.id.Contains("zombie"))
-                {
-                    zombie_id.Add(asset.id);
-                }
-            }
-            //MonoBehaviour.print(zombie_id.ToJson());
+            return;
         }
         public static bool turn_into_Undeads(BaseSimObject pTarget = null, WorldTile pTile = null,BaseSimObject pFrom = null)
         {
@@ -61,7 +55,10 @@ namespace Undeads.Code
                 {
                     subspecies?.setSkeletonForm(subspecies2);
                 }
-
+                actor.addTrait("Undead_flag");
+                actor.addTrait("fire_proof");
+                actor.addTrait("acid_proof");
+                actor.addTrait("immune");
                 ActorTool.copyUnitToOtherUnit(a, actor);
                 if (!a.getName().StartsWith("Un"))
                 {
@@ -69,7 +66,7 @@ namespace Undeads.Code
                 }
                 if(pFrom != null)
                 {
-                    actor.kingdom = pFrom.kingdom;
+                    if (pFrom.kingdom != null) actor.kingdom = pFrom.kingdom;
                 }
                 flag = true;
             }
@@ -81,8 +78,13 @@ namespace Undeads.Code
                 ActorTool.copyUnitToOtherUnit(pTarget.a, tGhost, true);
                 if (pFrom != null)
                 {
-                    tGhost.kingdom = pFrom.kingdom;
+                    if (pFrom.kingdom != null) tGhost.kingdom = pFrom.kingdom;
                 }
+                tGhost.addTrait("Undead_flag");
+                tGhost.addTrait("fire_proof");
+                tGhost.addTrait("acid_proof");
+                tGhost.addTrait("immune");
+                tGhost.subspecies.removeTrait("reproduction_soulborne");
                 flag = true;
 
             }
@@ -105,13 +107,18 @@ namespace Undeads.Code
                 actor.removeTrait("agile");
                 actor.removeTrait("genius");
                 actor.removeTrait("peaceful");
+                actor.removeTrait("zombie");
+                actor.addTrait("Undead_flag");
+                actor.addTrait("fire_proof");
+                actor.addTrait("acid_proof");
+                actor.addTrait("immune");
                 if (!a.getName().StartsWith("Un"))
                 {
                     actor.setName("Un" + Toolbox.LowerCaseFirst(a.getName()));
                 }
                 if (pFrom != null)
                 {
-                    actor.kingdom = pFrom.kingdom;
+                    if (pFrom.kingdom != null) actor.kingdom = pFrom.kingdom;
                 }
                 flag = true;
             }
@@ -122,12 +129,33 @@ namespace Undeads.Code
             }
             return flag;
         }
+
+        public static bool Undead_attack(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pTarget == null || !pTarget.isActor()) return false;
+            Actor tActor = pTarget.a;
+            if (Randy.randomChance(0.2f)) tActor.addStatusEffect("cough");
+            if (Randy.randomChance(0.2f)) tActor.addStatusEffect("poisoned");
+            if (Randy.randomChance(0.1f)) tActor.addStatusEffect("ash_fever");
+            if (Randy.randomChance(0.1f)) tActor.addStatusEffect("cursed");
+            return true;
+        }
+
+        public static bool Undead_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pTarget.current_tile.getBiome()?.id == "biome_corrupted")
+            {
+                pTarget.addStatusEffect("Undead_Corrupt_Buff_3");
+            }
+            return true;
+        }
+
         public static bool whisper_of_death_Action_death(BaseSimObject pTarget = null, WorldTile pTile = null)
         {
             pTarget.a._active_status_dict.TryGetValue("whisper_of_death", out Status value);
             if (value != null)
             {
-                StatusExtend ext = value.GetExtend();
+                FromExtend ext = value.GetExtend();
                 if (ext != null)
                 {
                     turn_into_Undeads(pTarget, pTile, ext.pFrom);
@@ -139,11 +167,7 @@ namespace Undeads.Code
         public static bool whisper_of_death_Action(BaseSimObject pTarget = null, WorldTile pTile = null)
         {
             pTarget.a._active_status_dict.TryGetValue("whisper_of_death", out Status value);
-            StatusExtend ext = value?.GetExtend();
-            if(ext != null && ext.pFrom != null && ext.pFrom.kingdom == pTarget.kingdom)
-            {
-                return false;
-            }
+            FromExtend ext = value?.GetExtend();
             pTarget.a.data.health = Mathf.Max(0, pTarget.a.data.health - Mathf.Max((int)(pTarget.a.getMaxHealth() * 0.04), 2));
             if (pTarget.a.data.health == 0)
             {
@@ -151,6 +175,7 @@ namespace Undeads.Code
                 {
                     bool flag = turn_into_Undeads(pTarget, pTile, ext.pFrom);
                     pTarget.a.die(flag, AttackType.Plague);
+                    return true;
                 }
                 pTarget.a.die(false, AttackType.Plague);
             }
@@ -198,20 +223,235 @@ namespace Undeads.Code
             {
                 if(Randy.randomChance(0.4f))
                 {
-                    ActionLibrary.spawnSkeleton(pTarget, pTile);
+                    BaseEffect baseEffect = EffectsLibrary.spawnAt("fx_create_skeleton", pTile.posV3, 0.1f);
+                    Actor actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
+                    actor.makeWait(0.8f);
+                    actor.addTrait("Undead_flag");
+                    City city2 = pSelf.a.city;
+                    Kingdom kingdom = pSelf.kingdom;
+                    if (!city2.isRekt() && city2.kingdom == kingdom)
+                    {
+                        actor.joinCity(pSelf.a.city);
+                    }
+                    else
+                    {
+                        actor.joinKingdom(kingdom);
+                    }
+                    actor.religion = pSelf.a.religion;
+                    actor.addStatusEffect("Undead_Corrupt_Buff_3");
                 }
                 else if(Randy.randomChance(0.33f))
                 {
-                    World.world.units.createNewUnit(zombie_id.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
-                    EffectsLibrary.spawn("fx_spawn", pTile);
+                    if (Randy.randomChance(0.02f))
+                    {
+                        Actor act = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
+                        EffectsLibrary.spawn("fx_spawn", pTile);
+                        act.religion = pSelf.a.religion;
+                        act.addTrait("Undead_flag");
+                        act.makeWait(0.8f);
+                        act.addStatusEffect("Undead_Corrupt_Buff_3");
+                    }
+                    else 
+                    {
+                        Actor act = World.world.units.createNewUnit(zombie_id.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
+                        EffectsLibrary.spawn("fx_spawn", pTile);
+                        act.religion = pSelf.a.religion;
+                        act.addTrait("Undead_flag");
+                        act.makeWait(0.8f);
+                        act.addStatusEffect("Undead_Corrupt_Buff_3");
+                    }
                 }
                 return true;
             }
         }
 
+        public static bool Corrupt_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pTarget.current_tile.getBiome()?.id == "biome_corrupted")
+            {
+                if(!pTarget.a.hasReligion()) return false;
+
+                if (pTarget.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_5_corrupt, 5))
+                {
+                    pTarget.addStatusEffect("Undead_Corrupt_Buff_3");
+                    pTarget.a.restoreHealthPercent(0.04f);
+                    pTarget.a.restoreManaPercent(0.04f);
+                    pTarget.a.restoreStaminaPercent(0.04f);
+                }
+                else if (pTarget.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_corrupt, 4))
+                {
+                    pTarget.addStatusEffect("Undead_Corrupt_Buff_2");
+                    pTarget.a.restoreHealthPercent(0.02f);
+                    pTarget.a.restoreManaPercent(0.02f);
+                    pTarget.a.restoreStaminaPercent(0.02f);
+                }
+
+                else if (pTarget.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_3_corrupt, 3))
+                {
+                    pTarget.addStatusEffect("Undead_Corrupt_Buff_1");
+                    pTarget.a.restoreHealthPercent(0.01f);
+                    pTarget.a.restoreManaPercent(0.01f);
+                    pTarget.a.restoreStaminaPercent(0.01f);
+                }
+
+            }
+            return true;
+        }
+
+
+        public static bool Corrupt_4_spell(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            World.world.StartCoroutine(Spread_Biome(pSelf, "biome_corrupted", 4, 0.1f, true));
+            return true;
+        }
+
+
+
+        public static bool Corrput_5_spell(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            World.world.StartCoroutine(Spread_Spell(pSelf, "biome_corrupted", 7, 0.1f, summon));
+            return true;
+
+            bool summon(BaseSimObject pTarget, WorldTile pTile = null)
+            {
+                if (Randy.randomChance(0.2f))
+                {
+                    BaseEffect baseEffect = EffectsLibrary.spawnAt("fx_create_skeleton", pTile.posV3, 0.1f);
+                    Actor actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
+                    actor.makeWait(1f);
+                    if(pSelf.kingdom != null) actor.joinKingdom(pSelf.kingdom);
+                    actor.addTrait("fire_proof");
+                    actor.addTrait("acid_proof");
+                    actor.addTrait("immune");
+                    actor.addTrait("Undead_flag");
+                    actor.addStatusEffect("Undead_Corrupt_Buff_3");
+                }
+                else if (Randy.randomChance(0.1f))
+                {
+                    if (Randy.randomChance(0.02f))
+                    {
+                        Actor actor = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
+                        actor.makeWait(1f);
+                        if (pSelf.kingdom != null) actor.joinKingdom(pSelf.kingdom);
+                        actor.addTrait("fire_proof");
+                        actor.addTrait("acid_proof");
+                        actor.addTrait("immune");
+                        actor.removeTrait("zombie");
+                        actor.addStatusEffect("Undead_Corrupt_Buff_3");
+                        actor.addTrait("Undead_flag");
+                    }
+                    else
+                    {
+                        Actor actor = World.world.units.createNewUnit(zombie_id.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
+                        actor.makeWait(1f);
+                        if (pSelf.kingdom != null) actor.joinKingdom(pSelf.kingdom);
+                        actor.addTrait("fire_proof");
+                        actor.addTrait("acid_proof");
+                        actor.addTrait("immune");
+                        actor.removeTrait("zombie");
+                        actor.addStatusEffect("Undead_Corrupt_Buff_3");
+                        actor.addTrait("Undead_flag");
+                    }
+                    EffectsLibrary.spawn("fx_spawn", pTile);
+                }
+                pTile.stopFire();
+                return true;
+            }
+        }
+
+        public static bool Corrput_Buff_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if(pTarget.a.hasStatus("Undead_Corrupt_Buff_3"))
+            {
+                pTarget.a.restoreHealthPercent(0.04f);
+                pTarget.a.restoreManaPercent(0.04f);
+                pTarget.a.restoreStaminaPercent(0.04f);
+            }
+            else if (pTarget.a.hasStatus("Undead_Corrupt_Buff_2"))
+            {
+                pTarget.a.restoreHealthPercent(0.02f);
+                pTarget.a.restoreManaPercent(0.02f);
+                pTarget.a.restoreStaminaPercent(0.02f);
+            }
+            else if (pTarget.a.hasStatus("Undead_Corrupt_Buff_1"))
+            {
+                pTarget.a.restoreHealthPercent(0.01f);
+                pTarget.a.restoreManaPercent(0.01f);
+                pTarget.a.restoreStaminaPercent(0.01f);
+            }
+            return true;
+        }
+
+
+        [Hotfixable]
         public static bool speard_curse_biome(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
             World.world.StartCoroutine(Undead_Action.Spread_Biome(pSelf, "biome_corrupted", 10));
+            return true;
+        }
+        [Hotfixable]
+        public static bool curse_phrase_2(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pSelf.a.religion == null) return false;//理论上不存在这种情况，但还是防一下
+            foreach (Actor tActor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 4f, false))
+            {
+                if (tActor.kingdom != null &&  tActor.kingdom.isEnemy(pSelf.kingdom))
+                {
+                    tActor.addStatusEffect("cough");
+                    tActor.addStatusEffect("poisoned");
+                    if(pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse,4))
+                    {
+                        tActor.getHit(tActor.getMaxHealth() * 0.025f, true, AttackType.Poison);
+                        tActor.getHit(tActor.getMaxHealth() * 0.025f, true, AttackType.Plague);
+                    }
+                }
+            }
+            return true;
+        }
+        [Hotfixable]
+        public static bool curse_phrase_3(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pSelf.a.religion == null) return false;//理论上不存在这种情况，但还是防一下
+            foreach (Actor tActor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 3f, false))
+            {
+                if (tActor.kingdom != null && tActor.kingdom.isEnemy(pSelf.kingdom))
+                {
+                    if(tActor.hasStatus("ash_fever"))
+                    {
+                        if(Randy.randomChance(0.5f)) tActor.addStatusEffect("cursed");
+                    }
+                    else if(tActor.hasStatus("cursed"))
+                    {
+                        if (Randy.randomChance(0.5f)) tActor.addStatusEffect("ash_fever");
+                    }
+                    else
+                    {
+                        if (Randy.randomChance(0.5f)) tActor.addStatusEffect("cursed");
+                        else tActor.addStatusEffect("ash_fever");
+                    }
+                    if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse, 4))
+                    {
+                        tActor.getHit(tActor.getMaxHealth() * 0.05f, true, AttackType.Plague);
+                    }
+                }
+            }
+            return true;
+        }
+        [Hotfixable]
+        public static bool curse_phrase_5(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pSelf.a.religion == null) return false;//理论上不存在这种情况，但还是防一下
+            foreach (Actor tActor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 3f, false))
+            {
+                if (tActor.kingdom != null && tActor.kingdom.isEnemy(pSelf.kingdom))
+                {
+                    tActor.addStatusEffect("whisper_of_death", pSelf.a);
+                    if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse, 4))
+                    {
+                        tActor.getHit(tActor.getMaxHealth() * 0.05f, true, AttackType.Age);
+                    }
+                }
+            }
             return true;
         }
         /// <summary>
@@ -260,7 +500,11 @@ namespace Undeads.Code
                     var depth = q.Peek().Item2;
                     q.Dequeue();
                     while (Config.paused) yield return new WaitForSeconds(0.4f);
-                    if (!t.Type.can_be_biome) continue;
+                    if (!t.Type.can_be_biome)
+                    {
+                        if(t.Type.ground) action?.RunAnyTrue(pTarget, t);
+                        continue;
+                    }
                     if ((t.top_type == high || t.top_type == low) && !overlay) continue;
                     if (cnt < depth)
                     {
@@ -279,6 +523,54 @@ namespace Undeads.Code
                             dict.Add(pT, true);
                             q.Enqueue(new Tuple<WorldTile, int>(pT, depth + 1));
                         }
+                    }
+                }
+            }
+            yield break;
+        }
+
+        public static IEnumerator Spread_Spell(BaseSimObject pTarget, string biome_id, int range, float delay_time = 1f, WorldAction action = null)
+        {
+            BiomeAsset biome = AssetManager.biome_library.get(biome_id);
+            if (pTarget == null) yield break;
+            WorldTile tile = pTarget.current_tile;
+            TopTileType toptile, high, low;
+            high = AssetManager.top_tiles.get(biome.tile_high);
+            low = AssetManager.top_tiles.get(biome.tile_low);
+            Queue<Tuple<WorldTile, int>> q = new();
+            Dictionary<WorldTile, bool> dict = new();
+            q.Enqueue(new Tuple<WorldTile, int>(tile, 0));
+            dict.Add(tile, true);
+            int cnt = 0;
+            while (q.Count > 0)
+            {
+                var t = q.Peek().Item1;
+                var depth = q.Peek().Item2;
+                q.Dequeue();
+                while (Config.paused) yield return new WaitForSeconds(0.4f);
+                if (cnt < depth)
+                {
+                    if (cnt > range) yield break;
+                    cnt++;
+                    yield return new WaitForSeconds(delay_time / Config.time_scale_asset.multiplier);
+                }
+                if (t.Type.can_be_biome)
+                {
+                    toptile = t.main_type.rank_type == TileRank.Low ? low : high;
+                    MapAction.growGreens(t, toptile);
+                }
+                else
+                {
+                    World.world.flash_effects.flashPixel(t, 20);
+                }
+                action?.RunAnyTrue(pTarget, t);
+                foreach (WorldTile pT in t.neighbours)
+                {
+                    if (dict.ContainsKey(pT)) continue;
+                    else
+                    {
+                        dict.Add(pT, true);
+                        q.Enqueue(new Tuple<WorldTile, int>(pT, depth + 1));
                     }
                 }
             }
