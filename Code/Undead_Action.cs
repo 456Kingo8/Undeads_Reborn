@@ -59,7 +59,7 @@ namespace Undeads.Code
                 actor.addTrait("fire_proof");
                 actor.addTrait("acid_proof");
                 actor.addTrait("immune");
-                ActorTool.copyUnitToOtherUnit(a, actor);
+                ActorTool.copyUnitToOtherUnit(a, actor);//记得修patch里trait collection的bug
                 if (!a.getName().StartsWith("Un"))
                 {
                     actor.setName("Un" + Toolbox.LowerCaseFirst(a.getName()));
@@ -134,10 +134,10 @@ namespace Undeads.Code
         {
             if (pTarget == null || !pTarget.isActor()) return false;
             Actor tActor = pTarget.a;
-            if (Randy.randomChance(0.2f)) tActor.addStatusEffect("cough");
-            if (Randy.randomChance(0.2f)) tActor.addStatusEffect("poisoned");
-            if (Randy.randomChance(0.1f)) tActor.addStatusEffect("ash_fever");
-            if (Randy.randomChance(0.1f)) tActor.addStatusEffect("cursed");
+            if (Randy.randomChance(0.24f)) tActor.addStatusEffect("cough");
+            if (Randy.randomChance(0.24f)) tActor.addStatusEffect("poisoned");
+            if (Randy.randomChance(0.12f)) tActor.addStatusEffect("ash_fever");
+            if (Randy.randomChance(0.12f)) tActor.addStatusEffect("cursed");
             return true;
         }
 
@@ -168,7 +168,7 @@ namespace Undeads.Code
         {
             pTarget.a._active_status_dict.TryGetValue("whisper_of_death", out Status value);
             FromExtend ext = value?.GetExtend();
-            pTarget.a.data.health = Mathf.Max(0, pTarget.a.data.health - Mathf.Max((int)(pTarget.a.getMaxHealth() * 0.04), 2));
+            pTarget.a.data.health = Mathf.Max(0, pTarget.a.data.health - Mathf.Max((int)(pTarget.a.getMaxHealth() * 0.05), 2));
             if (pTarget.a.data.health == 0)
             {
                 if (value != null && ext != null)
@@ -305,34 +305,81 @@ namespace Undeads.Code
             return true;
         }
 
+        [Hotfixable]
+        public static bool Soul_3_action(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if(!pSelf.a.hasReligion()) return false;
+            float damage = pSelf.a.stats["damage"];
+            int index = 3;
+            if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_soul, 4)) index = 4;
+            if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_5_soul, 5)) index = 5;
+            pTarget.getHit(damage * Mathf.Pow(1.25f ,(index - 2)),true,AttackType.Other,pSkipIfShake:false,pCheckDamageReduction:false);
+            return true;
+        }
 
+        public static bool Soul_4_spell(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            World.world.StartCoroutine(Spread_Spell(pSelf,4, 0.1f, summon));
+            return true;
+
+            static bool summon(BaseSimObject pTarget, WorldTile pTile = null)
+            {
+                if (Randy.randomChance(0.24f))
+                {
+                    Actor tGhost = World.world.units.createNewUnit("ghost", pTile, false, 0f, null, null, true, false, false, false);
+                    tGhost.kingdom = pTarget.kingdom;
+                    if(pTarget.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_5_corrupt,5)) tGhost.addTrait("Undead_flag");
+                    tGhost.addTrait("acid_proof");
+                    tGhost.addTrait("immune");
+                    tGhost.subspecies.removeTrait("reproduction_soulborne");
+                }
+                return true;
+            }
+
+        }
+
+        public static bool Special_5_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            float f = (float)pTarget.a.getMaxHealth()/ (10 * (pTarget.a.data.health + 50));
+            float rate = Mathf.Clamp(f,0.05f,0.3f);
+            //MonoBehaviour.print($"debug{f}  {rate}");
+            pTarget.a.restoreHealthPercent(rate);
+            return true;
+        }
+
+        public static bool Special_5_spell(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            pSelf.a.refresh_Trait();
+            pSelf.a.restoreHealthPercent(0.05f);
+            return true;
+        }
 
         public static bool Corrput_5_spell(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
             World.world.StartCoroutine(Spread_Spell(pSelf, "biome_corrupted", 7, 0.1f, summon));
             return true;
 
-            bool summon(BaseSimObject pTarget, WorldTile pTile = null)
+            static bool summon(BaseSimObject pTarget, WorldTile pTile = null)
             {
-                if (Randy.randomChance(0.2f))
+                if (Randy.randomChance(0.23f))
                 {
                     BaseEffect baseEffect = EffectsLibrary.spawnAt("fx_create_skeleton", pTile.posV3, 0.1f);
                     Actor actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
                     actor.makeWait(1f);
-                    if(pSelf.kingdom != null) actor.joinKingdom(pSelf.kingdom);
+                    if(pTarget.kingdom != null) actor.joinKingdom(pTarget.kingdom);
                     actor.addTrait("fire_proof");
                     actor.addTrait("acid_proof");
                     actor.addTrait("immune");
                     actor.addTrait("Undead_flag");
                     actor.addStatusEffect("Undead_Corrupt_Buff_3");
                 }
-                else if (Randy.randomChance(0.1f))
+                else if (Randy.randomChance(0.125f))
                 {
                     if (Randy.randomChance(0.02f))
                     {
                         Actor actor = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
                         actor.makeWait(1f);
-                        if (pSelf.kingdom != null) actor.joinKingdom(pSelf.kingdom);
+                        if (pTarget.kingdom != null) actor.joinKingdom(pTarget.kingdom);
                         actor.addTrait("fire_proof");
                         actor.addTrait("acid_proof");
                         actor.addTrait("immune");
@@ -344,7 +391,7 @@ namespace Undeads.Code
                     {
                         Actor actor = World.world.units.createNewUnit(zombie_id.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
                         actor.makeWait(1f);
-                        if (pSelf.kingdom != null) actor.joinKingdom(pSelf.kingdom);
+                        if (pTarget.kingdom != null) actor.joinKingdom(pTarget.kingdom);
                         actor.addTrait("fire_proof");
                         actor.addTrait("acid_proof");
                         actor.addTrait("immune");
@@ -393,21 +440,32 @@ namespace Undeads.Code
         public static bool curse_phrase_2(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
             if (pSelf.a.religion == null) return false;//理论上不存在这种情况，但还是防一下
-            foreach (Actor tActor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 4f, false))
+            int radius = 4;
+            if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse, 4))
+            {
+                radius = 6;
+            }
+
+            foreach (Actor tActor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, radius, false))
             {
                 if (tActor.kingdom != null &&  tActor.kingdom.isEnemy(pSelf.kingdom))
                 {
-                    tActor.addStatusEffect("cough");
-                    tActor.addStatusEffect("poisoned");
+
                     if(pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse,4))
                     {
-                        tActor.getHit(tActor.getMaxHealth() * 0.025f, true, AttackType.Poison);
-                        tActor.getHit(tActor.getMaxHealth() * 0.025f, true, AttackType.Plague);
+                        tActor.removeTrait("immune");
+                        tActor.removeTrait("poison_immune");
+                        tActor.getHit(tActor.getMaxHealth() * 0.025f, true, AttackType.Poison, pSkipIfShake: false, pCheckDamageReduction: true);
+                        tActor.getHit(tActor.getMaxHealth() * 0.025f, true, AttackType.Plague, pSkipIfShake: false, pCheckDamageReduction: false);
                     }
+                    tActor.addStatusEffect("cough");
+                    tActor.addStatusEffect("poisoned");
                 }
             }
             return true;
         }
+
+
         [Hotfixable]
         public static bool curse_phrase_3(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
@@ -416,7 +474,13 @@ namespace Undeads.Code
             {
                 if (tActor.kingdom != null && tActor.kingdom.isEnemy(pSelf.kingdom))
                 {
-                    if(tActor.hasStatus("ash_fever"))
+                    if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse, 4))
+                    {
+                        tActor.removeTrait("immune");
+                        tActor.removeTrait("poison_immune");
+                        tActor.getHit(tActor.getMaxHealth() * 0.05f, true, AttackType.Plague, pSkipIfShake: false, pCheckDamageReduction: true);
+                    }
+                    if (tActor.hasStatus("ash_fever"))
                     {
                         if(Randy.randomChance(0.5f)) tActor.addStatusEffect("cursed");
                     }
@@ -429,10 +493,6 @@ namespace Undeads.Code
                         if (Randy.randomChance(0.5f)) tActor.addStatusEffect("cursed");
                         else tActor.addStatusEffect("ash_fever");
                     }
-                    if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse, 4))
-                    {
-                        tActor.getHit(tActor.getMaxHealth() * 0.05f, true, AttackType.Plague);
-                    }
                 }
             }
             return true;
@@ -441,15 +501,22 @@ namespace Undeads.Code
         public static bool curse_phrase_5(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
             if (pSelf.a.religion == null) return false;//理论上不存在这种情况，但还是防一下
-            foreach (Actor tActor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 3f, false))
+            int radius = 2;
+            if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse, 4))
+            {
+                radius = 4;//理论上也不存在这种情况，但还是防一下
+            }
+            foreach (Actor tActor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, radius, false))
             {
                 if (tActor.kingdom != null && tActor.kingdom.isEnemy(pSelf.kingdom))
                 {
-                    tActor.addStatusEffect("whisper_of_death", pSelf.a);
                     if (pSelf.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_curse, 4))
                     {
-                        tActor.getHit(tActor.getMaxHealth() * 0.05f, true, AttackType.Age);
+                        tActor.removeTrait("immune");
+                        tActor.removeTrait("poison_immune");
+                        tActor.getHit(tActor.getMaxHealth() * 0.05f, true, AttackType.Age, pSkipIfShake: false, pCheckDamageReduction: true);
                     }
+                    tActor.addStatusEffect("whisper_of_death", pSelf.a);
                 }
             }
             return true;
@@ -531,8 +598,8 @@ namespace Undeads.Code
 
         public static IEnumerator Spread_Spell(BaseSimObject pTarget, string biome_id, int range, float delay_time = 1f, WorldAction action = null)
         {
-            BiomeAsset biome = AssetManager.biome_library.get(biome_id);
             if (pTarget == null) yield break;
+            BiomeAsset biome = AssetManager.biome_library.get(biome_id);
             WorldTile tile = pTarget.current_tile;
             TopTileType toptile, high, low;
             high = AssetManager.top_tiles.get(biome.tile_high);
@@ -576,6 +643,42 @@ namespace Undeads.Code
             }
             yield break;
         }
+        public static IEnumerator Spread_Spell(BaseSimObject pTarget, int range, float delay_time = 1f, WorldAction action = null)
+        {
+            if (pTarget == null) yield break;
+            WorldTile tile = pTarget.a.current_tile;
+            Queue<Tuple<WorldTile, int>> q = new();
+            Dictionary<WorldTile, bool> dict = new();
+            q.Enqueue(new Tuple<WorldTile, int>(tile, 0));
+            dict.Add(tile, true);
+            int cnt = 0;
+            while (q.Count > 0)
+            {
+                var t = q.Peek().Item1;
+                var depth = q.Peek().Item2;
+                q.Dequeue();
+                while (Config.paused) yield return new WaitForSeconds(0.4f);
+                if (cnt < depth)
+                {
+                    if (cnt > range) yield break;
+                    cnt++;
+                    yield return new WaitForSeconds(delay_time / Config.time_scale_asset.multiplier);
+                }
+                World.world.flash_effects.flashPixel(t, 20);
+                action?.RunAnyTrue(pTarget, t);
+                foreach (WorldTile pT in t.neighbours)
+                {
+                    if (dict.ContainsKey(pT)) continue;
+                    else
+                    {
+                        dict.Add(pT, true);
+                        q.Enqueue(new Tuple<WorldTile, int>(pT, depth + 1));
+                    }
+                }
+            }
+            yield break;
+        }
+
 
         public static bool Battle_Continue_finish(BaseSimObject pTarget, WorldTile pTile = null)
         {

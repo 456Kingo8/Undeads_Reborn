@@ -40,9 +40,9 @@ namespace Undeads.Code
         public static readonly string Undead_Phrase_4_curse = "Undead_Phrase_4_curse";
         public static readonly string Undead_Phrase_4_corrupt = "Undead_Phrase_4_corrupt";
         public static readonly string Undead_Phrase_4_craft = "Undead_Phrase_4_craft";
-        public static string Undead_Phrase_4_special = null;
+        public static readonly string Undead_Phrase_4_special = "Undead_Phrase_4_special";
         public static readonly string Undead_Phrase_4_finish = "Undead_Phrase_4_finish";
-        public static List<string> Undead_Phrase_4_normal = new List<string>() { Undead_Phrase_4_soul, Undead_Phrase_4_curse, Undead_Phrase_4_corrupt, Undead_Phrase_4_craft };
+        public static List<string> Undead_Phrase_4_normal = new List<string>() { Undead_Phrase_4_soul, Undead_Phrase_4_curse, Undead_Phrase_4_corrupt, Undead_Phrase_4_craft ,Undead_Phrase_4_special};
 
         public static readonly string Undead_Phrase_5_soul = "Undead_Phrase_5_soul";
         public static readonly string Undead_Phrase_5_curse = "Undead_Phrase_5_curse";
@@ -70,6 +70,18 @@ namespace Undeads.Code
                     MonoBehaviour.print("Undead_Error");
                     return null;
             }
+        }
+
+        public static int get_Phrase_index(Religion religion) 
+        { 
+            if(religion == null) return 0;
+            if (religion.hasTrait(Undead_Phrase_4_finish)) return 5;
+            if (religion.hasTrait(Undead_Phrase_3_finish)) return 4;
+            if (religion.hasTrait(Undead_Phrase_2_finish)) return 3;
+            if (religion.hasTrait(Undead_Phrase_1_finish)) return 2;
+            if(religion.hasTrait(Undead_Phrase_Start)) return 1;
+            return  0;
+
         }
 
 

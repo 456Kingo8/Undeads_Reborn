@@ -41,6 +41,7 @@ namespace Undeads.Code
             };
             Undead.base_stats = new BaseStats();
             Undead.base_stats["mana"] = 30;
+            Undead.base_stats["lifespan"] = 20;
             AssetManager.traits.add(Undead);
             return;
         }

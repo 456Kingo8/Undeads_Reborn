@@ -74,5 +74,32 @@ namespace Undeads.Code
                 }
             }
         }
+
+        public static void refresh(this Actor actor)
+        {
+            var dict = actor.getStatuses();
+            foreach (var item in dict)
+            {
+                actor.finishStatusEffect(item.asset.id);
+            }
+            actor.refresh_Trait();
+        }
+
+        public static void refresh_Trait(this Actor actor)
+        {
+            actor.removeTrait("tumor_infection");
+            actor.removeTrait("plague");
+            actor.removeTrait("mush_spores");
+            actor.removeTrait("infected");
+            actor.removeTrait("tumor_infection");
+            actor.removeTrait("madness");
+            actor.removeTrait("desire_alien_mold");
+            actor.removeTrait("desire_golden_egg");
+            actor.removeTrait("desire_computer");
+            actor.removeTrait("desire_harp");
+            actor.removeTrait("crippled");
+            actor.removeTrait("skin_burns");
+            actor.addTrait("immune");
+        }
     }
 }

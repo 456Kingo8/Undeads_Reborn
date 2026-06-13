@@ -17,6 +17,8 @@ namespace Undeads.Code
         public static SpellAsset curse_5 = new SpellAsset();
         public static SpellAsset corrupt_4 = new SpellAsset();
         public static SpellAsset corrupt_5 = new SpellAsset();
+        public static SpellAsset soul_4 = new SpellAsset();
+        public static SpellAsset special_5 = new SpellAsset();
         public static void init()
         {
             SpellAsset spell = new SpellAsset();
@@ -76,6 +78,24 @@ namespace Undeads.Code
             spell.min_distance = 0;
             AssetManager.spells.add(spell);
             corrupt_5 = spell;
+
+            spell = new SpellAsset();
+            spell.id = "Undead_Soul_4";
+            spell.cost_mana = 10;
+            spell.can_be_used_in_combat = true;
+            spell.action = Undead_Action.Soul_4_spell;
+            spell.min_distance = 0;
+            AssetManager.spells.add(spell);
+            soul_4 = spell;
+
+            spell = new SpellAsset();
+            spell.id = "Undead_special_5";
+            spell.cost_mana = 5;
+            spell.can_be_used_in_combat = true;
+            spell.action = Undead_Action.Special_5_spell;
+            spell.min_distance = 0;
+            AssetManager.spells.add(spell);
+            special_5 = spell;
         }
 
     }
