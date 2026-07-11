@@ -10,7 +10,7 @@ namespace Undeads.Code
     static class SUndead
     {
         public static readonly string Undead_Phrase_Start = "Undead_Phrase_Start";
-
+        
         public static readonly string Undead_Phrase_1_soul = "Undead_Phrase_1_soul";
         public static string Undead_Phrase_1_curse = null;
         public static string Undead_Phrase_1_corrupt = null;

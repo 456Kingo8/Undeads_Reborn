@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
+using NeoModLoader.api.attributes;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
@@ -15,6 +16,106 @@ namespace Undeads.Code
         public static void init()
         {
             Harmony.CreateAndPatchAll(typeof(Patches));
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Actor), "getHit")]
+        public static bool Actor_getHit(Actor __instance,ref float pDamage,ref AttackType pAttackType,ref BaseSimObject pAttacker,ref bool pSkipIfShake,ref bool pMetallicWeapon,ref bool pCheckDamageReduction)
+        {
+            if (__instance.hasTrait("Undead_soul_lord"))
+            {
+                if (pCheckDamageReduction)
+                {
+                    float num = 1f - __instance.stats["armor"] / 100f;
+                    pDamage *= num;
+                }
+                bool flag = true;
+                List<Actor> actor_list = new List<Actor>();
+                foreach (Actor actor in Finder.getUnitsFromChunk(__instance.current_tile, 2, 8f))
+                {
+                    if (actor.asset.has_soul && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
+                    {
+                        if (actor.kingdom.isEnemy(__instance.kingdom))
+                        {
+                            actor.getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
+                            flag = false;
+                            break;
+                        }
+                        else actor_list.Add(actor);
+                    }
+                }
+                if (flag && actor_list.Count > 0)
+                {
+                    actor_list.GetRandom().getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
+                    flag = false;
+                }
+                return flag;
+            }
+
+            if (__instance.hasTrait("Undead_skeleton_lord") || __instance.hasTrait("Undead_zombie_lord"))
+            {
+                __instance._last_attack_type = pAttackType;
+                if (__instance._cache_check_has_status_removed_on_damage)
+                {
+                    foreach (Status status in __instance.getStatuses())
+                    {
+                        if (!status.is_finished && status.asset.removed_on_damage)
+                        {
+                            __instance.finishStatusEffect(status.asset.id);
+                        }
+                    }
+                }
+                if (DebugConfig.isOn(DebugOption.IgnoreDamage))
+                {
+                    return false;
+                }
+                if (pSkipIfShake && __instance._shake_active)
+                {
+                    return false;
+                }
+                __instance.attackedBy = null;
+                if (pAttacker.isRekt())
+                {
+                    pAttacker = null;
+                }
+                if (pAttacker != __instance)
+                {
+                    __instance.attackedBy = pAttacker;
+                }
+                if (!__instance.hasHealth())
+                {
+                    return false;
+                }
+                if (__instance.is_invincible)
+                {
+                    return false;
+                }
+                if (pCheckDamageReduction)
+                {
+                    float num = 1f - __instance.stats["armor"] / 100f;
+                    pDamage *= num;
+                }
+                if(pDamage >= __instance.getHealth())
+                {
+                    if (__instance.current_tile == null) return true;
+                    string str = "";
+                    if (__instance.hasTrait("Undead_skeleton_lord")) str = "skeleton";
+                    else str = "zombie";
+                    bool flag = true;
+                    foreach (Actor actor in Finder.getUnitsFromChunk(__instance.current_tile, 2, 12f))
+                    {
+                        if(actor.asset.id.Contains(str) && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
+                        {
+                            actor.getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
+                            flag = false;
+                            break;
+                        }
+                    }
+                    return flag;
+                }
+                return true;
+            }
+            return true;
         }
 
         [HarmonyPrefix]
@@ -167,7 +268,27 @@ namespace Undeads.Code
             }
             if (__instance.hasReligion())
             {
-                __instance.stats.mergeStats(__instance.religion.base_stats, 1f);
+                float flag = 1f;
+                if (World.world.era_manager.getCurrentAge().flag_night)
+                {
+                    if (__instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_2_special, 2))
+                    {
+                        flag = 1.2f;
+                    }
+                    else if (__instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_3_special, 3))
+                    {
+                        flag = 1.5f;
+                    }
+                    else if (__instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_special, 4))
+                    {
+                        flag = 2f;
+                    }
+                    else if (__instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_5_special, 5))
+                    {
+                        flag = 5f;
+                    }
+                }
+                __instance.stats.mergeStats(__instance.religion.base_stats, flag);
             }
 
             BaseStats stats = __instance.stats;

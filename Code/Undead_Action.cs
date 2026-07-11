@@ -15,7 +15,8 @@ namespace Undeads.Code
     class Undead_Action
     {
 
-        public static List<string> zombie_id = new List<string>() {"zombie_human", "zombie_elf", "zombie_orc", "zombie_dwarf", "zombie_animal_fox", "zombie_animal_buffalo", "zombie_animal_monkey", "zombie_animal_rhino", "zombie_animal_frog", "zombie_animal_snake", "zombie_animal_dog", "zombie_animal_wolf", "zombie_animal_bear", "zombie_grasshopper", "zombie_necromancer", "zombie_plague_doctor", "zombie_white_mage", "zombie_evil_mage" };
+        public static List<string> zombie_id = new List<string>() {"zombie_human", "zombie_elf", "zombie_orc", "zombie_dwarf", "zombie_animal_fox", "zombie_animal_buffalo", "zombie_animal_monkey", "zombie_animal_rhino", "zombie_animal_frog", "zombie_animal_snake", "zombie_animal_dog", "zombie_animal_wolf", "zombie_animal_bear", "zombie_grasshopper", "zombie_plague_doctor", "zombie_white_mage", "zombie_evil_mage" };
+        public static List<string> zombie_id_strong = new List<string>() { "zombie_human", "zombie_elf", "zombie_orc", "zombie_dwarf","zombie_animal_bear", "zombie_grasshopper", "zombie_plague_doctor", "zombie_white_mage", "zombie_evil_mage" };
         public static void init()
         {
             return;
@@ -213,53 +214,68 @@ namespace Undeads.Code
             return LichLord_attack(pTarget,null,pTile);
         }
 
-
+        //骸骨军团和尸群领主公用的action
+        [Hotfixable]
         public static bool summon_undead(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
-            World.world.StartCoroutine(Spread_Biome(pSelf, "biome_corrupted",8,0.1f,true,summon));
+            World.world.StartCoroutine(Spread_Spell(pSelf, 6 , 0.1f , summon));
             return true;
 
-            bool summon(BaseSimObject pTarget, WorldTile pTile = null)
+            [Hotfixable]
+            static bool summon(BaseSimObject pTarget, WorldTile pTile = null)
             {
-                if(Randy.randomChance(0.4f))
+                float chance_skeleton = 0.4f;
+                float chance_zombie = 0.2f;
+                Actor actor = null;
+                Actor act = pTarget.a;
+                if (act.hasTrait("Undead_skeleton_lord"))
+                {
+                    chance_skeleton = 0.6f;
+                    chance_zombie = 0;
+                }
+                else if (act.hasTrait("Undead_zombie_lord"))
+                {
+                    chance_skeleton = 0;
+                    chance_zombie = 0.6f;
+                }
+
+                if (chance_skeleton != 0 && Randy.randomChance(chance_skeleton))
                 {
                     BaseEffect baseEffect = EffectsLibrary.spawnAt("fx_create_skeleton", pTile.posV3, 0.1f);
-                    Actor actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
-                    actor.makeWait(0.8f);
-                    actor.addTrait("Undead_flag");
-                    City city2 = pSelf.a.city;
-                    Kingdom kingdom = pSelf.kingdom;
-                    if (!city2.isRekt() && city2.kingdom == kingdom)
-                    {
-                        actor.joinCity(pSelf.a.city);
-                    }
-                    else
-                    {
-                        actor.joinKingdom(kingdom);
-                    }
-                    actor.religion = pSelf.a.religion;
-                    actor.addStatusEffect("Undead_Corrupt_Buff_3");
+                    actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: false, pAdultAge: true);
+                    if(Randy.randomChance(0.5f)) actor.equipment.weapon.setItem(newItem("sword_mythril", pTarget.kingdom,pTarget.name),actor);
+                    else actor.equipment.weapon.setItem(newItem("bow_mythril", pTarget.kingdom, pTarget.name), actor);
+                    actor.equipment.armor.setItem(newItem("armor_mythril", pTarget.kingdom, pTarget.name), actor);
+                    actor.equipment.boots.setItem(newItem("boots_mythril", pTarget.kingdom, pTarget.name), actor);
+                    actor.equipment.helmet.setItem(newItem("helmet_mythril", pTarget.kingdom, pTarget.name), actor);
+                    actor.equipment.ring.setItem(newItem("ring_mythril", pTarget.kingdom, pTarget.name), actor);
+                    actor.addTrait("veteran");
                 }
-                else if(Randy.randomChance(0.33f))
+                if(actor == null && chance_zombie != 0 && Randy.randomChance(chance_zombie))
                 {
-                    if (Randy.randomChance(0.02f))
-                    {
-                        Actor act = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
-                        EffectsLibrary.spawn("fx_spawn", pTile);
-                        act.religion = pSelf.a.religion;
-                        act.addTrait("Undead_flag");
-                        act.makeWait(0.8f);
-                        act.addStatusEffect("Undead_Corrupt_Buff_3");
-                    }
-                    else 
-                    {
-                        Actor act = World.world.units.createNewUnit(zombie_id.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
-                        EffectsLibrary.spawn("fx_spawn", pTile);
-                        act.religion = pSelf.a.religion;
-                        act.addTrait("Undead_flag");
-                        act.makeWait(0.8f);
-                        act.addStatusEffect("Undead_Corrupt_Buff_3");
-                    }
+                    if (Randy.randomChance(0.02f)) actor = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
+                    else actor = World.world.units.createNewUnit(zombie_id_strong.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
+                    EffectsLibrary.spawn("fx_spawn", pTile);
+                    actor.addTrait("regeneration");
+                    actor.addTrait("hard_skin",true);
+                    actor.addTrait("strong", true);
+                    actor.addTrait("giant", true);
+                    actor.addTrait("fase", true);
+                    actor.addTrait("dash");
+                }
+                if (actor != null)
+                {
+                    actor.makeWait(1f);
+                    if (act.kingdom != null) actor.joinKingdom(act.kingdom);
+                    if (act.city != null && actor.asset.id == "skeleton") actor.joinCity(pTarget.a.city);
+                    actor.addTrait("fire_proof");
+                    actor.addTrait("acid_proof");
+                    actor.addTrait("immune");
+                    actor.removeTrait("zombie");
+                    actor.addStatusEffect("Undead_Corrupt_Buff_1",float.PositiveInfinity);
+                    actor.addStatusEffect("Undead_Corrupt_Buff_3");
+                    actor.addTrait("Undead_flag");
+                    pTile.stopFire();
                 }
                 return true;
             }
@@ -301,6 +317,7 @@ namespace Undeads.Code
 
         public static bool Corrupt_4_spell(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
+            if (!pSelf.a.hasReligion()) return false;
             World.world.StartCoroutine(Spread_Biome(pSelf, "biome_corrupted", 4, 0.1f, true));
             return true;
         }
@@ -319,6 +336,7 @@ namespace Undeads.Code
 
         public static bool Soul_4_spell(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
+            if (!pSelf.a.hasReligion()) return false;
             World.world.StartCoroutine(Spread_Spell(pSelf,4, 0.1f, summon));
             return true;
 
@@ -353,7 +371,7 @@ namespace Undeads.Code
             pSelf.a.restoreHealthPercent(0.05f);
             return true;
         }
-
+        [Hotfixable]
         public static bool Corrput_5_spell(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
             World.world.StartCoroutine(Spread_Spell(pSelf, "biome_corrupted", 7, 0.1f, summon));
@@ -361,47 +379,31 @@ namespace Undeads.Code
 
             static bool summon(BaseSimObject pTarget, WorldTile pTile = null)
             {
+                Actor actor = null;
                 if (Randy.randomChance(0.23f))
                 {
-                    BaseEffect baseEffect = EffectsLibrary.spawnAt("fx_create_skeleton", pTile.posV3, 0.1f);
-                    Actor actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
-                    actor.makeWait(1f);
-                    if(pTarget.kingdom != null) actor.joinKingdom(pTarget.kingdom);
-                    actor.addTrait("fire_proof");
-                    actor.addTrait("acid_proof");
-                    actor.addTrait("immune");
-                    actor.addTrait("Undead_flag");
-                    actor.addStatusEffect("Undead_Corrupt_Buff_3");
+                    actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
+                    EffectsLibrary.spawnAt("fx_create_skeleton", pTile.posV3, 0.1f);
                 }
                 else if (Randy.randomChance(0.125f))
                 {
-                    if (Randy.randomChance(0.02f))
-                    {
-                        Actor actor = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
-                        actor.makeWait(1f);
-                        if (pTarget.kingdom != null) actor.joinKingdom(pTarget.kingdom);
-                        actor.addTrait("fire_proof");
-                        actor.addTrait("acid_proof");
-                        actor.addTrait("immune");
-                        actor.removeTrait("zombie");
-                        actor.addStatusEffect("Undead_Corrupt_Buff_3");
-                        actor.addTrait("Undead_flag");
-                    }
-                    else
-                    {
-                        Actor actor = World.world.units.createNewUnit(zombie_id.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
-                        actor.makeWait(1f);
-                        if (pTarget.kingdom != null) actor.joinKingdom(pTarget.kingdom);
-                        actor.addTrait("fire_proof");
-                        actor.addTrait("acid_proof");
-                        actor.addTrait("immune");
-                        actor.removeTrait("zombie");
-                        actor.addStatusEffect("Undead_Corrupt_Buff_3");
-                        actor.addTrait("Undead_flag");
-                    }
+                    if (Randy.randomChance(0.02f)) actor = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
+                    else actor = World.world.units.createNewUnit(zombie_id.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: true, pAdultAge: true);
                     EffectsLibrary.spawn("fx_spawn", pTile);
                 }
-                pTile.stopFire();
+                if (actor != null)
+                {
+                    actor.makeWait(1f);
+                    if (pTarget.kingdom != null) actor.joinKingdom(pTarget.kingdom);
+                    if(pTarget.a.city != null && actor.asset.id == "skeleton") actor.joinCity(pTarget.a.city);
+                    actor.addTrait("fire_proof");
+                    actor.addTrait("acid_proof");
+                    actor.addTrait("immune");
+                    actor.removeTrait("zombie");
+                    actor.addStatusEffect("Undead_Corrupt_Buff_3");
+                    actor.addTrait("Undead_flag");
+                    pTile.stopFire();
+                }
                 return true;
             }
         }
@@ -685,6 +687,12 @@ namespace Undeads.Code
             pTarget.a.addTrait("death_mark");
             pTarget.a.die();
             return true;
+        }
+        
+        public static Item newItem(string id,Kingdom kingdom,string pWho)
+        {
+            MonoBehaviour.print(AssetManager.items.get(id) == null);
+            return World.world.items.generateItem(AssetManager.items.get(id), kingdom,pWho);
         }
     }
 }

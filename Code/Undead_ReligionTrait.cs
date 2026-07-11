@@ -15,7 +15,7 @@ namespace Undeads.Code
         public static void init()
         {
 
-            List<string> strings = new List<string>() { "soul","curse", "corrupt", "craft", "special", "finish"};
+            List<string> strings = new List<string>() { "soul","curse", "corrupt", /*"craft",*/ "special", "finish"};
             for(int i = 1;i <= 5;i++)
             {
                 int rarity = 0;
@@ -33,7 +33,7 @@ namespace Undeads.Code
                         ReligionTrait t = new ReligionTrait
                         {
                             id = id,
-                            path_icon = "Icons/TestIcon",
+                            path_icon = "Icons/iconNecro",
                             group_id = "Undead_Phrase_" + i,
                             special_locale_id = $"{id}_id",
                             special_locale_description = $"{id}_des",
@@ -58,7 +58,7 @@ namespace Undeads.Code
             ReligionTrait start = new ReligionTrait//化身天灾
             {
                 id = "Undead_Phrase_Start",
-                path_icon = "Icons/TestIcon",
+                path_icon = "Icons/iconPhrase",
                 group_id = "Undead",
                 special_locale_id = "Undead_Phrase_Start_id",
                 special_locale_description = "Undead_Phrase_Start_des",
@@ -75,7 +75,7 @@ namespace Undeads.Code
             ReligionTrait Blasphemy = new ReligionTrait//渎神仪式
             {
                 id = "Undead_Blasphemy",
-                path_icon = "Icons/TestIcon",
+                path_icon = "Icons/iconBlasphemy",
                 group_id = "Undead",
                 special_locale_id = "Undead_Blasphemy_id",
                 special_locale_description = "Undead_Blasphemy_des",
@@ -94,6 +94,11 @@ namespace Undeads.Code
             var trait = AssetManager.religion_traits.get(SUndead.Undead_Phrase_1_special);
             trait.base_stats["lifespan"] = 5;
             trait.base_stats["multiplier_health"] = 0.1f;
+            trait = AssetManager.religion_traits.get(SUndead.Undead_Phrase_1_finish);
+            trait.spells.Add(Undead_Spell.curse_2);
+            trait.base_stats["lifespan"] = 5;
+            trait.base_stats["multiplier_health"] = 0.1f;
+
 
             trait = AssetManager.religion_traits.get(SUndead.Undead_Phrase_2_curse);
             trait.spells.Add(Undead_Spell.curse_2);

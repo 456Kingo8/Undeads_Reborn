@@ -12,7 +12,7 @@ namespace Undeads.Code
         {
             StatusAsset asset = new StatusAsset();
             asset.id = "whisper_of_death";
-            asset.path_icon = "Icons/iconNecromancer";
+            asset.path_icon = "Icons/iconNewhisper";
             asset.duration = 30;
             asset.action_death = Undead_Action.whisper_of_death_Action_death;
             asset.action = Undead_Action.whisper_of_death_Action;
@@ -23,7 +23,7 @@ namespace Undeads.Code
 
             asset = new StatusAsset();
             asset.id = "Undead_Battle_Continue";
-            asset.path_icon = "Icons/iconNecromancer";
+            asset.path_icon = "Icons/iconNecrorage";
             asset.duration = 5f;
             asset.locale_id = "Undead_Battle_Continue_status_id";
             asset.locale_description = "Undead_Battle_Continue_status_des";

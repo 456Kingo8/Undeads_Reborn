@@ -7,6 +7,7 @@ using UnityEngine.PlayerLoop;
 using NeoModLoader.api.attributes;
 using NeoModLoader.General;
 using System.IO;
+using NeoModLoader.General.Event.Listeners;
 
 namespace Undeads
 {

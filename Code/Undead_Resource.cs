@@ -16,7 +16,7 @@ namespace Undeads.Code
             asset.restore_mana = 100;
             asset.restore_stamina = 100;
             asset.storage_max = 100000;
-            asset.path_icon = "testicon2";
+            asset.path_icon = "iconSoulGem";
 
         }
     }

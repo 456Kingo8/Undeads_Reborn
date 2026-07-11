@@ -20,7 +20,7 @@ namespace Undeads.Code
             Research_Secret.can_be_done_by_king = true;
             Research_Secret.can_be_done_by_leader = true;
             Research_Secret.can_be_done_by_clan_member = true;
-            Research_Secret.check_is_possible = delegate(Actor pActor)
+            Research_Secret.check_is_possible = delegate (Actor pActor)
             {
                 string str = get_Next_Research(pActor.religion);
                 if (str == null) return false;
@@ -39,12 +39,12 @@ namespace Undeads.Code
                 string next = get_Next_Research(pActor.religion);
                 if (next == null) return false;
                 pActor.religion.addTrait(next);//如果religion为null，则next==null，此情况已排除，故以下不再需要确定religion是否存在
-                if(next.Contains("finish"))
+                if (next.Contains("finish"))
                 {
-                    switch(next)
+                    switch (next)
                     {
                         case "Undead_Phrase_1_finish":
-                            foreach(string str in SUndead.Undead_Phrase_1_normal)
+                            foreach (string str in SUndead.Undead_Phrase_1_normal)
                                 pActor.religion.removeTrait(str);
                             break;
                         case "Undead_Phrase_2_finish":
@@ -85,19 +85,18 @@ namespace Undeads.Code
             Blasphemy_Plot.can_be_done_by_clan_member = false;
             Blasphemy_Plot.check_is_possible = delegate (Actor pActor)
             {
-                MonoBehaviour.print("Blasphemy_Plot");
                 return pActor.isAlive() && pActor.hasReligion() && pActor.religion.countAdults() > 200 && pActor.religion.countCities() > 3;
             };
             Blasphemy_Plot.action = delegate (Actor pActor)
             {
                 Religion religion = pActor.religion;
-                if(religion != null && pActor.kingdom != null && pActor.kingdom.cities.Count > 0) 
+                if (religion != null && pActor.kingdom != null && pActor.kingdom.cities.Count > 0)
                 {
                     pActor.religion._traits.Clear();
                     pActor.religion.addTrait(SUndead.Undead_Phrase_Start);
                     pActor.religion.addTrait(SUndead.Undead_Phrase_1_soul);
                     WorldTile target = null;
-                    foreach(City city in pActor.kingdom.cities)
+                    foreach (City city in pActor.kingdom.cities)
                     {
                         target = city.zones.GetRandom<TileZone>().getRandomTile();
                         MapBox.spawnLightningMedium(target, 0.25f, pActor);
@@ -119,6 +118,49 @@ namespace Undeads.Code
                 return false;
             };
 
+
+            PlotAsset Dark_Era_Plot = AssetManager.plots_library.clone("Dark_Era_Plot", "new_book");
+            Dark_Era_Plot.group_id = "religion";
+            Dark_Era_Plot.money_cost = 500;
+            //Research_Secret.path_icon = "Icon/TestIcon";
+            Dark_Era_Plot.progress_needed = 180;
+            Dark_Era_Plot.min_level = 6;
+            Dark_Era_Plot.min_intelligence = 6;
+            Dark_Era_Plot.can_be_done_by_king = true;
+            Dark_Era_Plot.can_be_done_by_leader = true;
+            Dark_Era_Plot.can_be_done_by_clan_member = true;
+            Dark_Era_Plot.check_is_possible = delegate (Actor pActor)
+            {
+                return pActor.hasReligion() && pActor.religion.has_Undead_Trait(SUndead.Undead_Phrase_3_special, 3) && !World.world_era.flag_night && pActor.getMana() >= 100;
+            };
+            Dark_Era_Plot.action = delegate (Actor pActor)
+            {
+                World.world.era_manager.setCurrentAge(AssetManager.era_library.get("age_dark"), false);
+                pActor.restoreMana(-100);
+                return true;
+            };
+
+
+            PlotAsset Evernight_Plot = AssetManager.plots_library.clone("Evernight_Plot", "new_book");
+            Evernight_Plot.group_id = "religion";
+            Evernight_Plot.money_cost = 800;
+            //Research_Secret.path_icon = "Icon/TestIcon";
+            Evernight_Plot.progress_needed = 320;
+            Evernight_Plot.min_level = 10;
+            Evernight_Plot.min_intelligence = 6;
+            Evernight_Plot.can_be_done_by_king = true;
+            Evernight_Plot.can_be_done_by_leader = true;
+            Evernight_Plot.can_be_done_by_clan_member = true;
+            Evernight_Plot.check_is_possible = delegate (Actor pActor)
+            {
+                return pActor.hasReligion() && pActor.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_special, 4) && !World.world_era.flag_night && pActor.getMana() >= 150;
+            };
+            Evernight_Plot.action = delegate (Actor pActor)
+            {
+                World.world.era_manager.setCurrentAge(AssetManager.era_library.get("age_dark"),true);
+                pActor.restoreMana(-200);
+                return true;
+            };
         }
 
         public static string get_Next_Research(Religion religion)
