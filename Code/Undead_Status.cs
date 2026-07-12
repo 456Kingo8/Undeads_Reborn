@@ -80,6 +80,30 @@ namespace Undeads.Code
             asset.locale_id = "Undead_Ark_Cooldown_id";
             asset.locale_description = "Undead_Ark_Cooldown_des";
             AssetManager.status.add(asset);
+
+            asset = new StatusAsset();
+            asset.id = "Undead_lord_of_army";
+            asset.path_icon = "Icons/iconNecromancer";
+            asset.duration = 20f;
+            asset.locale_id = "Undead_lord_of_army_id";
+            asset.locale_description = "Undead_lord_of_army_des";
+            asset.base_stats["multiplier_damage"] = 0.6f;
+            asset.base_stats["multiplier_health"] = 0.6f;
+            asset.base_stats["multiplier_speed"] = 0.15f;
+            asset.base_stats["armor"] = 20f;
+            AssetManager.status.add(asset);
+
+            asset = new StatusAsset();
+            asset.id = "Undead_army_of_lord";
+            asset.path_icon = "Icons/iconNecromancer";
+            asset.duration = 10f;
+            asset.locale_id = "Undead_army_of_lord_id";
+            asset.locale_description = "Undead_army_of_lord_des";
+            asset.base_stats["multiplier_damage"] = 0.2f;
+            asset.base_stats["multiplier_health"] = 0.25f;
+            asset.base_stats["multiplier_speed"] = 0.15f;
+            asset.base_stats["armor"] = 10f;
+            AssetManager.status.add(asset);
         }
     }
 }

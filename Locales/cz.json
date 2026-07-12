@@ -103,5 +103,22 @@
   "Undead_Phrase_5_finish_des2": "无尽黑暗",
   "Undead_flag_id": "亡灵天灾",
   "Undead_flag_des": "攻击附带中毒、咳嗽、诅咒、灰烬病",
-  "Undead_flag_des2": ""
+  "Undead_flag_des2": "",
+  "Undead_corrupt_lord_id": "腐化之心",
+  "Undead_corrupt_lord_des": "",
+  "Undead_corrupt_lord_des2": "↑↑ ↑↑ ↑↑ ↓↓ ",
+  "Undead_zombie_lord_id": "尸群领主",
+  "Undead_zombie_lord_des": "",
+  "Undead_zombie_lord_des2": "放心，这个不会感染",
+  "Undead_skeleton_lord_id": "骸骨军团",
+  "Undead_skeleton_des": "",
+  "Undead_skeleton_des2": "确诊为骨质增生",
+  "Undead_soul_lord_id": "灵魂学者",
+  "Undead_soul_lord_des": "",
+  "Undead_soul_lord_des2": "不等价交换？",
+  "Undead_plague_lord_id": "瘟疫医生",
+  "Undead_plague_lord_des": "",
+  "Undead_plague_lord_des2": "格陵兰岛关闭了港口"
+
+
 }

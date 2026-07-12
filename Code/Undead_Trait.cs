@@ -72,6 +72,7 @@ namespace Undeads.Code
                 special_locale_description_2 = "Undead_skeleton_lord_des2",
                 //action_special_effect = Undead_Action.Undead_action
             };
+            trait.action_special_effect = Undead_Action.ske_zom_lord_action;
             trait.base_stats = new BaseStats();
             trait.base_stats["mana"] = 200;
             trait.base_stats["range"] = 2;
@@ -91,6 +92,7 @@ namespace Undeads.Code
                 //action_special_effect = Undead_Action.Undead_action
             };
             trait.base_stats = new BaseStats();
+            trait.action_special_effect = Undead_Action.ske_zom_lord_action;
             trait.base_stats["mana"] = 200;
             trait.base_stats["range"] = 2;
             trait.base_stats["lifespan"] = 150;

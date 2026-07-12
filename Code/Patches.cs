@@ -1,11 +1,12 @@
-﻿using System;
+﻿using ai.behaviours;
+using HarmonyLib;
+using NeoModLoader.api.attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
-using HarmonyLib;
-using NeoModLoader.api.attributes;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
@@ -17,23 +18,19 @@ namespace Undeads.Code
         {
             Harmony.CreateAndPatchAll(typeof(Patches));
         }
-
+        #region Actor
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Actor), "getHit")]
-        public static bool Actor_getHit(Actor __instance,ref float pDamage,ref AttackType pAttackType,ref BaseSimObject pAttacker,ref bool pSkipIfShake,ref bool pMetallicWeapon,ref bool pCheckDamageReduction)
+        public static bool Actor_getHit(Actor __instance, ref float pDamage, ref AttackType pAttackType, ref BaseSimObject pAttacker, ref bool pSkipIfShake, ref bool pMetallicWeapon, ref bool pCheckDamageReduction)
         {
             if (__instance.hasTrait("Undead_soul_lord"))
             {
-                if (pCheckDamageReduction)
-                {
-                    float num = 1f - __instance.stats["armor"] / 100f;
-                    pDamage *= num;
-                }
                 bool flag = true;
                 List<Actor> actor_list = new List<Actor>();
-                foreach (Actor actor in Finder.getUnitsFromChunk(__instance.current_tile, 2, 8f))
+                foreach (Actor actor in Finder.getUnitsFromChunk(__instance.current_tile, 1, 6f))
                 {
-                    if (actor.asset.has_soul && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
+                    MonoBehaviour.print(actor.Undead_has_soul());
+                    if (actor.Undead_has_soul() && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
                     {
                         if (actor.kingdom.isEnemy(__instance.kingdom))
                         {
@@ -43,6 +40,11 @@ namespace Undeads.Code
                         }
                         else actor_list.Add(actor);
                     }
+                }
+                if (pCheckDamageReduction)
+                {
+                    float num = 1f - __instance.stats["armor"] / 100f;
+                    pDamage *= num;
                 }
                 if (flag && actor_list.Count > 0)
                 {
@@ -95,7 +97,7 @@ namespace Undeads.Code
                     float num = 1f - __instance.stats["armor"] / 100f;
                     pDamage *= num;
                 }
-                if(pDamage >= __instance.getHealth())
+                if (pDamage >= __instance.getHealth())
                 {
                     if (__instance.current_tile == null) return true;
                     string str = "";
@@ -104,7 +106,7 @@ namespace Undeads.Code
                     bool flag = true;
                     foreach (Actor actor in Finder.getUnitsFromChunk(__instance.current_tile, 2, 12f))
                     {
-                        if(actor.asset.id.Contains(str) && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
+                        if (actor.asset.id.Contains(str) && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
                         {
                             actor.getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
                             flag = false;
@@ -120,13 +122,13 @@ namespace Undeads.Code
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Actor), "die")]
-        public static bool Actor_die(Actor __instance,ref AttackType pType,ref bool pCountDeath,ref bool pLogFavorite)
+        public static bool Actor_die(Actor __instance, ref AttackType pType, ref bool pCountDeath, ref bool pLogFavorite)
         {
             if (__instance.hasStatus("Undead_Battle_Continue") && !__instance.hasTrait("death_mark")) return false;
 
-            if (__instance.hasReligion() && !__instance.hasStatus("Ark_Cooldown")&&__instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_5_soul, 5) && !__instance.hasTrait("death_mark"))
+            if (__instance.hasReligion() && !__instance.hasStatus("Ark_Cooldown") && __instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_5_soul, 5) && !__instance.hasTrait("death_mark"))
             {
-                if(__instance.hasCity() && __instance.city.buildings.Count > 0)
+                if (__instance.hasCity() && __instance.city.buildings.Count > 0)
                 {
                     WorldTile tile = __instance.city.buildings.GetRandom().current_tile;
                     ActionLibrary.teleportEffect(__instance, tile);
@@ -141,11 +143,11 @@ namespace Undeads.Code
                 return false;
             }
 
-            if (__instance.hasReligion() && __instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_1_special,1) && !__instance.hasTrait("death_mark"))
+            if (__instance.hasReligion() && __instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_1_special, 1) && !__instance.hasTrait("death_mark"))
             {
                 __instance.data.health = 1;
                 __instance._alive = true;
-                __instance.addStatusEffect("Undead_Battle_Continue",5f * SUndead.get_Phrase_index(__instance.religion));
+                __instance.addStatusEffect("Undead_Battle_Continue", 5f * SUndead.get_Phrase_index(__instance.religion));
                 return false;
             }
 
@@ -168,7 +170,7 @@ namespace Undeads.Code
                 __instance.spawnOn(worldTile);
                 __instance.setHealth(1);//生命强制变为1，防止进入无敌状态
                 __instance.makeStunned(2f);//提供2秒眩晕
-                World.world.StartCoroutine(Undead_Action.Spread_Biome(__instance, "biome_grass", 8,0.2f,true,restore));
+                World.world.StartCoroutine(Undead_Action.Spread_Biome(__instance, "biome_grass", 8, 0.2f, true, restore));
                 return false;
 
                 bool restore(BaseSimObject pTarget, WorldTile pTile = null)
@@ -179,12 +181,12 @@ namespace Undeads.Code
                 }
             }
 
-            if(__instance.hasReligion() && __instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_1_soul,1))
+            if (__instance.hasReligion() && __instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_1_soul, 1))
             {
-                if(__instance.city!= null && __instance.city.storages.Count > 0)
+                if (__instance.city != null && __instance.city.storages.Count > 0)
                 {
                     __instance.city.storages.GetRandom()?.addResources("Undead_Soul_Pieces", 1);
-                }  
+                }
             }
             return true;
         }
@@ -193,8 +195,8 @@ namespace Undeads.Code
         [HarmonyPatch(typeof(Actor), "pickupResourcesFromKill")]
         public static void Actor_pickupResourcesFromKill(Actor pAttacker)
         {
-            if(pAttacker.religion == null) return;
-            if (pAttacker.religion.has_Undead_Trait(SUndead.Undead_Phrase_2_soul,2) && pAttacker.city != null && pAttacker.city.storages.Count > 0)
+            if (pAttacker.religion == null) return;
+            if (pAttacker.religion.has_Undead_Trait(SUndead.Undead_Phrase_2_soul, 2) && pAttacker.city != null && pAttacker.city.storages.Count > 0)
             {
                 pAttacker.city.storages.GetRandom()?.addResources("Undead_Soul_Pieces", 1);
             }
@@ -605,8 +607,8 @@ namespace Undeads.Code
 
         #endregion
 
-
-
+        #endregion
+        #region ActionLibrary
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionLibrary), "spawnGhost")]
         public static bool ActionLibrary_spawnGhost(ref BaseSimObject pTarget)
@@ -615,7 +617,7 @@ namespace Undeads.Code
             {
                 return false;
             }
-            if (pTarget.isActor() && pTarget.a.asset.id.Contains("zombie")&&pTarget.a.kingdom.isCiv())
+            if (pTarget.isActor() && pTarget.a.asset.id.Contains("zombie") && pTarget.a.kingdom.isCiv())
             {
                 return false;
             }
@@ -644,5 +646,23 @@ namespace Undeads.Code
         //    }
         //    return true;
         //}
+
+        #endregion
+     
+    
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BehSkeletonFindTile), "execute")]
+        public static bool BehSkeletonFindTile_execute(ref Actor pActor,ref BehResult __result)
+        {
+            using IEnumerator<Actor> enumerator = Undead_Action.findTraitAroundTileChunk(pActor.current_tile, "Undead_skeleton_lord").GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                Actor actor = enumerator.Current;
+                pActor.beh_tile_target = actor.current_tile.region.tiles.GetRandom<WorldTile>();
+                __result = BehResult.Continue;
+                return false;
+            }
+            return true;
+        }
     }
 }

@@ -30,6 +30,11 @@ namespace Undeads.Code
             extend.pFrom = pFrom;
         }
 
+        //老马我问你，啥叫野生动物没有灵魂？
+        public static bool Undead_has_soul(this Actor actor)
+        {
+            return !actor.asset.id.Contains("zombie") && !actor.asset.id.Contains("tumor") && !actor.asset.id.Contains("mush") && !actor.asset.id.Contains("zerg");
+        }
 
         public static bool has_Undead_Trait(this Religion religion, string str, int phrase)
         {
