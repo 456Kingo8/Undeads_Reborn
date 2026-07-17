@@ -17,7 +17,7 @@ namespace Undeads.Code
         public static readonly string Undead_Phrase_1_craft = "Undead_Phrase_1_craft";
         public static readonly string Undead_Phrase_1_special = "Undead_Phrase_1_special";
         public static readonly string Undead_Phrase_1_finish = "Undead_Phrase_1_finish";
-        public static List<string> Undead_Phrase_1_normal = new List<string>() { Undead_Phrase_1_soul, Undead_Phrase_1_craft, Undead_Phrase_1_special };
+        public static List<string> Undead_Phrase_1_normal = new List<string>() { Undead_Phrase_1_soul, Undead_Phrase_1_special };
 
 
         public static readonly string Undead_Phrase_2_soul = "Undead_Phrase_2_soul";
@@ -42,7 +42,7 @@ namespace Undeads.Code
         public static readonly string Undead_Phrase_4_craft = "Undead_Phrase_4_craft";
         public static readonly string Undead_Phrase_4_special = "Undead_Phrase_4_special";
         public static readonly string Undead_Phrase_4_finish = "Undead_Phrase_4_finish";
-        public static List<string> Undead_Phrase_4_normal = new List<string>() { Undead_Phrase_4_soul, Undead_Phrase_4_curse, Undead_Phrase_4_corrupt, Undead_Phrase_4_craft ,Undead_Phrase_4_special};
+        public static List<string> Undead_Phrase_4_normal = new List<string>() { Undead_Phrase_4_soul, Undead_Phrase_4_curse, Undead_Phrase_4_corrupt ,Undead_Phrase_4_special};
 
         public static readonly string Undead_Phrase_5_soul = "Undead_Phrase_5_soul";
         public static readonly string Undead_Phrase_5_curse = "Undead_Phrase_5_curse";

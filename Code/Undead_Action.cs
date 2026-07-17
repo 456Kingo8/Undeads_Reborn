@@ -297,6 +297,20 @@ namespace Undeads.Code
             }
             return true;
         }
+        //腐化之心 - 腐化之唤：半径4格内友方单位获得腐化之唤buff + 3级腐化效果
+        public static bool Corrupt_Call_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 4f, false))
+            {
+                if (actor.kingdom == pTarget.kingdom && !actor.hasTrait("Undead_corrupt_lord"))
+                {
+                    actor.addStatusEffect("Undead_Corrupt_Call", 10f);
+                    actor.addStatusEffect("Undead_Corrupt_Buff_3", 30f);
+                }
+            }
+            return true;
+        }
+
         public static bool Corrupt_action(BaseSimObject pTarget, WorldTile pTile = null)
         {
             if (pTarget.current_tile.getBiome()?.id == "biome_corrupted")
@@ -711,6 +725,21 @@ namespace Undeads.Code
             return World.world.items.generateItem(AssetManager.items.get(id), kingdom,pWho);
         }
 
+        //灵魂学者 - 灵魂风暴：攻击附带真实伤害，随半径5格内有灵魂生物数量增多
+        public static bool Soul_Storm_attack(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pTarget == null || !pTarget.isActor()) return true;
+            int soulCount = 0;
+            foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 5f, false))
+            {
+                if (actor.Undead_has_soul()) soulCount++;
+            }
+            float baseDamage = pSelf.a.stats["damage"];
+            float extraDamage = baseDamage * (1 + soulCount * 0.15f);
+            pTarget.a.getHit(extraDamage, true, AttackType.Other, pSkipIfShake: false, pCheckDamageReduction: false);
+            return true;
+        }
+
         public static IEnumerable<Actor> findTraitAroundTileChunk(WorldTile pTile, string pTrait)
         {
             foreach (Actor actor in Finder.getUnitsFromChunk(pTile, 1, 0f, false))
@@ -721,6 +750,98 @@ namespace Undeads.Code
                 }
             }
             yield break;
+        }
+
+        //瘟疫医生 - 感染之触：亡灵瘟疫随攻击和行动蔓延
+        public static bool Plague_Spread_attack(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pTarget == null || !pTarget.isActor()) return true;
+            pTarget.a.addStatusEffect("Undead_Plague", pSelf.a, 30f);
+            foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 3f, false))
+            {
+                if (Randy.randomChance(0.4f))
+                {
+                    actor.addStatusEffect("Undead_Plague", pSelf.a, 30f);
+                }
+            }
+            return true;
+        }
+
+        public static bool Plague_Spread_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 4f, false))
+            {
+                actor.addStatusEffect("Undead_Plague", pTarget.a, 30f);
+            }
+            return true;
+        }
+
+        //瘟疫医生 - 基因编辑：亡灵瘟疫对友方增益，对敌方减益
+        public static bool Undead_Plague_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            Actor target = pTarget.a;
+            //获取瘟疫来源，判断阵营
+            FromExtend ext = null;
+            target._active_status_dict.TryGetValue("Undead_Plague", out Status value);
+            if (value != null) ext = value.GetExtend();
+            if (ext != null && ext.pFrom != null && ext.pFrom.kingdom != null)
+            {
+                if (target.kingdom == ext.pFrom.kingdom)
+                {
+                    //友方增益
+                    target.restoreHealthPercent(0.02f);
+                    target.addStatusEffect("Undead_Corrupt_Buff_1", 3f);
+                }
+                else
+                {
+                    //敌方减益
+                    target.getHit(Mathf.Max(target.getMaxHealth() * 0.01f, 3), true, AttackType.Plague, pSkipIfShake: false, pCheckDamageReduction: false);
+                }
+            }
+            else
+            {
+                //无来源，默认减益
+                target.getHit(Mathf.Max(target.getMaxHealth() * 0.005f, 1), true, AttackType.Plague, pSkipIfShake: false, pCheckDamageReduction: false);
+            }
+            return true;
+        }
+
+        //瘟疫医生 - 治愈之光：治疗半径6格内友方，移除负面特质和状态
+        private static readonly string[] _cure_statuses = { "cursed", "poisoned", "cough", "ash_fever", "whisper_of_death" };
+        private static readonly string[] _cure_traits = { "infected", "mush_spores", "tumor_infection", "one_eyed", "crippled" };
+        public static bool Heal_Light_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 6f, false))
+            {
+                if (actor.kingdom == pTarget.kingdom)
+                {
+                    actor.restoreHealthPercent(0.03f);
+                    foreach (string status in _cure_statuses)
+                    {
+                        if (actor.hasStatus(status)) actor.finishStatusEffect(status);
+                    }
+                    foreach (string trait in _cure_traits)
+                    {
+                        if (actor.hasTrait(trait)) actor.removeTrait(trait);
+                    }
+                }
+            }
+            return true;
+        }
+
+        //灵魂学者 - 灵魂增殖：每3s所在城市获得1灵魂碎片
+        private static Dictionary<int, float> _soul_proliferation_cooldown = new Dictionary<int, float>();
+        public static bool Soul_Proliferation_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            if (pTarget.a.city == null || pTarget.a.city.storages.Count == 0) return true;
+            int id = pTarget.a.GetHashCode();
+            float now = Time.time;
+            if (!_soul_proliferation_cooldown.TryGetValue(id, out float last) || now - last >= 3f)
+            {
+                _soul_proliferation_cooldown[id] = now;
+                pTarget.a.city.storages.GetRandom()?.addResources("Undead_Soul_Pieces", 1);
+            }
+            return true;
         }
     }
 }

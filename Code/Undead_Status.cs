@@ -94,6 +94,27 @@ namespace Undeads.Code
             AssetManager.status.add(asset);
 
             asset = new StatusAsset();
+            asset.id = "Undead_Corrupt_Call";
+            asset.path_icon = "Icons/iconNecromancer";
+            asset.duration = 10f;
+            asset.locale_id = "Undead_Corrupt_Call_id";
+            asset.locale_description = "Undead_Corrupt_Call_des";
+            asset.base_stats = new BaseStats();
+            asset.base_stats["multiplier_damage"] = 0.3f;
+            asset.base_stats["multiplier_speed"] = 0.15f;
+            AssetManager.status.add(asset);
+
+            asset = new StatusAsset();
+            asset.id = "Undead_Plague";
+            asset.path_icon = "Icons/iconNecromancer";
+            asset.duration = 30f;
+            asset.locale_id = "Undead_Plague_id";
+            asset.locale_description = "Undead_Plague_des";
+            asset.action = Undead_Action.Undead_Plague_action;
+            asset.action_interval = 1f;
+            AssetManager.status.add(asset);
+
+            asset = new StatusAsset();
             asset.id = "Undead_army_of_lord";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 10f;

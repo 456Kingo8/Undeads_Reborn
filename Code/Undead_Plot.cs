@@ -75,17 +75,17 @@ namespace Undeads.Code
 
             PlotAsset Blasphemy_Plot = AssetManager.plots_library.clone("Undead_Blasphemy_Plot", "new_book");
             Blasphemy_Plot.group_id = "religion";
-            Blasphemy_Plot.money_cost = 3000;
+            Blasphemy_Plot.money_cost = 666;
             //Research_Secret.path_icon = "Icon/TestIcon";
             Blasphemy_Plot.progress_needed = 180;
-            Blasphemy_Plot.min_level = 6;
+            Blasphemy_Plot.min_level = 5;
             Blasphemy_Plot.min_intelligence = 6;
             Blasphemy_Plot.can_be_done_by_king = true;
             Blasphemy_Plot.can_be_done_by_leader = false;
             Blasphemy_Plot.can_be_done_by_clan_member = false;
             Blasphemy_Plot.check_is_possible = delegate (Actor pActor)
             {
-                return pActor.isAlive() && pActor.hasReligion() && pActor.religion.countAdults() > 200 && pActor.religion.countCities() > 3;
+                return pActor.isAlive() && pActor.hasReligion() && pActor.religion.countAdults() >= 200 && pActor.religion.countCities() >= 1;
             };
             Blasphemy_Plot.action = delegate (Actor pActor)
             {

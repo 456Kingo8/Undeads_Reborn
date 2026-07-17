@@ -118,7 +118,11 @@
   "Undead_soul_lord_des2": "不等价交换？",
   "Undead_plague_lord_id": "瘟疫医生",
   "Undead_plague_lord_des": "",
-  "Undead_plague_lord_des2": "格陵兰岛关闭了港口"
+  "Undead_plague_lord_des2": "格陵兰岛关闭了港口",
+  "Undead_Corrupt_Call_id": "腐化之唤",
+  "Undead_Corrupt_Call_des": "受到腐化之心的召唤\n获得伤害与速度加成",
+  "Undead_Plague_id": "亡灵瘟疫",
+  "Undead_Plague_des": "亡灵瘟疫在体内蔓延\n对敌方：持续受到伤害\n对友方：获得增益"
 
 
 }

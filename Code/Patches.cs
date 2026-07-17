@@ -23,13 +23,18 @@ namespace Undeads.Code
         [HarmonyPatch(typeof(Actor), "getHit")]
         public static bool Actor_getHit(Actor __instance, ref float pDamage, ref AttackType pAttackType, ref BaseSimObject pAttacker, ref bool pSkipIfShake, ref bool pMetallicWeapon, ref bool pCheckDamageReduction)
         {
+            //腐化之心 - 坚不可摧：受伤后获得0.2s势不可挡
+            if (__instance.hasTrait("Undead_corrupt_lord"))
+            {
+                __instance.addStatusEffect("unstoppable", 0.2f);
+            }
+
             if (__instance.hasTrait("Undead_soul_lord"))
             {
                 bool flag = true;
                 List<Actor> actor_list = new List<Actor>();
                 foreach (Actor actor in Finder.getUnitsFromChunk(__instance.current_tile, 1, 6f))
                 {
-                    MonoBehaviour.print(actor.Undead_has_soul());
                     if (actor.Undead_has_soul() && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
                     {
                         if (actor.kingdom.isEnemy(__instance.kingdom))

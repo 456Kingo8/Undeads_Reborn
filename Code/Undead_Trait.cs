@@ -54,7 +54,7 @@ namespace Undeads.Code
                 special_locale_id = "Undead_corrupt_lord_id",
                 special_locale_description = "Undead_corrupt_lord_des",
                 special_locale_description_2 = "Undead_corrupt_lord_des2",
-                //action_special_effect = Undead_Action.Undead_action
+                action_special_effect = Undead_Action.Corrupt_Call_action
             };
             trait.base_stats = new BaseStats();
             trait.base_stats["mana"] = 300;
@@ -108,7 +108,8 @@ namespace Undeads.Code
                 special_locale_id = "Undead_soul_lord_id",
                 special_locale_description = "Undead_soul_lord_des",
                 special_locale_description_2 = "Undead_soul_lord_des2",
-                //action_special_effect = Undead_Action.Undead_action
+                action_attack_target = Undead_Action.Soul_Storm_attack,
+                action_special_effect = Undead_Action.Soul_Proliferation_action
             };
             trait.base_stats = new BaseStats();
             trait.base_stats["mana"] = 1000;
@@ -125,8 +126,10 @@ namespace Undeads.Code
                 special_locale_id = "Undead_plague_lord_id",
                 special_locale_description = "Undead_plague_lord_des",
                 special_locale_description_2 = "Undead_plague_lord_des2",
-                //action_special_effect = Undead_Action.Undead_action
+                action_special_effect = Undead_Action.Heal_Light_action
             };
+            trait.action_attack_target = Undead_Action.Plague_Spread_attack;
+            trait.action_special_effect += Undead_Action.Plague_Spread_action;
             trait.base_stats = new BaseStats();
             trait.base_stats["mana"] = 100;
             trait.base_stats["range"] = 4;
