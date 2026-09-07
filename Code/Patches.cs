@@ -28,35 +28,40 @@ namespace Undeads.Code
             {
                 __instance.addStatusEffect("unstoppable", 0.2f);
             }
-
-            if (__instance.hasTrait("Undead_soul_lord"))
+            if (__instance.hasTrait("LichLord"))
             {
-                bool flag = true;
-                List<Actor> actor_list = new List<Actor>();
-                foreach (Actor actor in Finder.getUnitsFromChunk(__instance.current_tile, 1, 6f))
+                __instance.addStatusEffect("unstoppable", 3f);
+                //限伤：伤害不会高于最大生命值的5%（毁灭之名头衔为2.5%）
+                float maxDamageRate = 0.05f;
+                if (Undead_Action.get_LichLord_title(__instance) == 5) maxDamageRate = 0.025f;
+                float maxDamage = __instance.getMaxHealth() * maxDamageRate;
+                if(pDamage > maxDamage)
                 {
-                    if (actor.Undead_has_soul() && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
-                    {
-                        if (actor.kingdom.isEnemy(__instance.kingdom))
-                        {
-                            actor.getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
-                            flag = false;
-                            break;
-                        }
-                        else actor_list.Add(actor);
-                    }
+                    pDamage = maxDamage;
                 }
-                if (pCheckDamageReduction)
+            }
+            bool isDestruction = __instance.hasTrait("LichLord") && Undead_Action.get_LichLord_title(__instance) == 5;
+
+            //毁灭之名特判：优先生命链接，失败再灵魂链接
+            if (isDestruction)
+            {
+                if (try_Life_Link(__instance, ref pDamage, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction))
                 {
-                    float num = 1f - __instance.stats["armor"] / 100f;
-                    pDamage *= num;
+                    return false;
                 }
-                if (flag && actor_list.Count > 0)
+                if (try_Soul_Link(__instance, ref pDamage, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction))
                 {
-                    actor_list.GetRandom().getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
-                    flag = false;
+                    return false;
                 }
-                return flag;
+            }
+            //普通灵魂链接
+            else if (__instance.hasTrait("Undead_soul_lord"))
+            {
+                if (try_Soul_Link(__instance, ref pDamage, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction))
+                {
+                    return false;
+                }
+                return true;
             }
 
             if (__instance.hasTrait("Undead_skeleton_lord") || __instance.hasTrait("Undead_zombie_lord"))
@@ -104,25 +109,83 @@ namespace Undeads.Code
                 }
                 if (pDamage >= __instance.getHealth())
                 {
-                    if (__instance.current_tile == null) return true;
-                    string str = "";
-                    if (__instance.hasTrait("Undead_skeleton_lord")) str = "skeleton";
-                    else str = "zombie";
-                    bool flag = true;
-                    foreach (Actor actor in Finder.getUnitsFromChunk(__instance.current_tile, 2, 12f))
+                    if (try_Life_Link(__instance, ref pDamage, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction))
                     {
-                        if (actor.asset.id.Contains(str) && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
-                        {
-                            actor.getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
-                            flag = false;
-                            break;
-                        }
+                        return false;
                     }
-                    return flag;
+                    return true;
                 }
                 return true;
             }
             return true;
+        }
+
+        //灵魂链接：受到伤害时转移至附近有灵魂生物（优先敌对）。返回true=成功分担
+        private static bool try_Soul_Link(Actor pActor, ref float pDamage, AttackType pAttackType, BaseSimObject pAttacker, bool pSkipIfShake, bool pMetallicWeapon, bool pCheckDamageReduction)
+        {
+            if (!pActor.hasTrait("Undead_soul_lord")) return false;
+            bool shared = false;
+            List<Actor> actor_list = new List<Actor>();
+            float soulLinkRange = 6f;
+            if (pActor.hasTrait("LichLord")) soulLinkRange = 3f;//灵魂学者头衔：灵魂链接判定范围-3
+            foreach (Actor actor in Finder.getUnitsFromChunk(pActor.current_tile, 1, soulLinkRange))
+            {
+                if (actor.Undead_has_soul() && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
+                {
+                    if (actor.kingdom.isEnemy(pActor.kingdom))
+                    {
+                        actor.getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
+                        shared = true;
+                        break;
+                    }
+                    else actor_list.Add(actor);
+                }
+            }
+            if (pCheckDamageReduction)
+            {
+                float num = 1f - pActor.stats["armor"] / 100f;
+                pDamage *= num;
+            }
+            if (!shared && actor_list.Count > 0)
+            {
+                actor_list.GetRandom().getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
+                shared = true;
+            }
+            return shared;
+        }
+
+        //生命链接：受到致命伤害时转移至附近友方骷髅/僵尸。返回true=成功分担
+        private static bool try_Life_Link(Actor pActor, ref float pDamage, AttackType pAttackType, BaseSimObject pAttacker, bool pSkipIfShake, bool pMetallicWeapon, bool pCheckDamageReduction)
+        {
+            if (!pActor.hasTrait("Undead_skeleton_lord") && !pActor.hasTrait("Undead_zombie_lord")) return false;
+            if (pDamage < pActor.getHealth()) return false;//非致命伤害不触发
+            if (pActor.current_tile == null) return false;
+
+            //优先骷髅链接
+            if (pActor.hasTrait("Undead_skeleton_lord"))
+            {
+                foreach (Actor actor in Finder.getUnitsFromChunk(pActor.current_tile, 2, 12f))
+                {
+                    if (actor.asset.id.Contains("skeleton") && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
+                    {
+                        actor.getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
+                        return true;
+                    }
+                }
+            }
+            //再尝试僵尸链接
+            if (pActor.hasTrait("Undead_zombie_lord"))
+            {
+                foreach (Actor actor in Finder.getUnitsFromChunk(pActor.current_tile, 2, 12f))
+                {
+                    if (actor.asset.id.Contains("zombie") && !actor.hasTrait("Undead_skeleton_lord") && !actor.hasTrait("Undead_zombie_lord") && !actor.hasTrait("Undead_corrupt_lord") && !actor.hasTrait("Undead_soul_lord") && !actor.hasTrait("Undead_plague_lord"))
+                    {
+                        actor.getHit(pDamage, true, pAttackType, pAttacker, pSkipIfShake, pMetallicWeapon, pCheckDamageReduction);
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         [HarmonyPrefix]
@@ -669,5 +732,7 @@ namespace Undeads.Code
             }
             return true;
         }
+
+
     }
 }

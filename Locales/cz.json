@@ -122,7 +122,9 @@
   "Undead_Corrupt_Call_id": "腐化之唤",
   "Undead_Corrupt_Call_des": "受到腐化之心的召唤\n获得伤害与速度加成",
   "Undead_Plague_id": "亡灵瘟疫",
-  "Undead_Plague_des": "亡灵瘟疫在体内蔓延\n对敌方：持续受到伤害\n对友方：获得增益"
+  "Undead_Plague_des": "亡灵瘟疫在体内蔓延\n对敌方：持续受到伤害\n对友方：获得增益",
+  "Undead_Destruction_Name_id": "毁灭之名",
+  "Undead_Destruction_Name_des": "攻速翻倍，攻击力翻倍"
 
 
 }

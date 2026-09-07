@@ -94,6 +94,29 @@ namespace Undeads.Code
             AssetManager.status.add(asset);
 
             asset = new StatusAsset();
+            asset.id = "Undead_army_of_lord";
+            asset.path_icon = "Icons/iconNecromancer";
+            asset.duration = 10f;
+            asset.locale_id = "Undead_army_of_lord_id";
+            asset.locale_description = "Undead_army_of_lord_des";
+            asset.base_stats["multiplier_damage"] = 0.2f;
+            asset.base_stats["multiplier_health"] = 0.25f;
+            asset.base_stats["multiplier_speed"] = 0.15f;
+            asset.base_stats["armor"] = 10f;
+            AssetManager.status.add(asset);
+
+            asset = new StatusAsset();
+            asset.id = "Undead_Destruction_Name";
+            asset.path_icon = "Icons/iconNecrolord";
+            asset.duration = 99999f;
+            asset.locale_id = "Undead_Destruction_Name_id";
+            asset.locale_description = "Undead_Destruction_Name_des";
+            asset.base_stats = new BaseStats();
+            asset.base_stats["multiplier_damage"] = 1f;//攻击力翻倍
+            asset.base_stats["multiplier_attack_speed"] = 1f;//攻速翻倍
+            AssetManager.status.add(asset);
+
+            asset = new StatusAsset();
             asset.id = "Undead_Corrupt_Call";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 10f;
@@ -111,20 +134,11 @@ namespace Undeads.Code
             asset.locale_id = "Undead_Plague_id";
             asset.locale_description = "Undead_Plague_des";
             asset.action = Undead_Action.Undead_Plague_action;
+            asset.action_death = Undead_Action.Undead_Plague_action_death;
             asset.action_interval = 1f;
             AssetManager.status.add(asset);
 
-            asset = new StatusAsset();
-            asset.id = "Undead_army_of_lord";
-            asset.path_icon = "Icons/iconNecromancer";
-            asset.duration = 10f;
-            asset.locale_id = "Undead_army_of_lord_id";
-            asset.locale_description = "Undead_army_of_lord_des";
-            asset.base_stats["multiplier_damage"] = 0.2f;
-            asset.base_stats["multiplier_health"] = 0.25f;
-            asset.base_stats["multiplier_speed"] = 0.15f;
-            asset.base_stats["armor"] = 10f;
-            AssetManager.status.add(asset);
+
         }
     }
 }

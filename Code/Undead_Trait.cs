@@ -11,24 +11,24 @@ namespace Undeads.Code
      {
         public static void init()
         {
-            //测速特质，准备弃用
-            //ActorTrait LichLord = new ActorTrait()
-            //{
-            //    id = "LichLord",
-            //    path_icon = "Icons/iconNecrolord",
-            //    group_id = "Undead",
-            //    special_locale_id = "LichLord_id",
-            //    special_locale_description = "LichLord_des",
-            //    action_attack_target = Undead_Action.LichLord_attack,
-            //    action_special_effect = Undead_Action.LichLord_action,
-                
-            //};
-            //LichLord.base_stats = new BaseStats();
-            //LichLord.base_stats.addTag("Undead");
-            //LichLord.spells = new List<SpellAsset>() {Undead_Spell.summon_undeads};
-            //LichLord.decisions_assets = new DecisionAsset[] { Undead_Decision.speard_curse_biome };
-            //AssetManager.traits.add(LichLord);
-            //setAchievementUnlock(LichLord, "achievementGreatPlague");
+            ActorTrait LichLord = new ActorTrait()
+            {
+                id = "LichLord",
+                path_icon = "Icons/iconNecrolord",
+                group_id = "Undead",
+                special_locale_id = "LichLord_id",
+                special_locale_description = "LichLord_des",
+                action_attack_target = Undead_Action.LichLord_attack,
+                action_special_effect = Undead_Action.LichLord_action,
+
+            };
+            LichLord.base_stats = new BaseStats();
+            LichLord.base_stats.addTag("Undead");
+            LichLord.spells = new List<SpellAsset>() { Undead_Spell.summon_undeads, Undead_Spell.lichlord_summon };
+            LichLord.decisions_assets = new DecisionAsset[] { Undead_Decision.speard_curse_biome };
+            LichLord.action_special_effect += Undead_Action.LichLord_title_action;
+            AssetManager.traits.add(LichLord);
+            setAchievementUnlock(LichLord, "achievementGreatPlague");
 
             ActorTrait Undead = new ActorTrait()
             {

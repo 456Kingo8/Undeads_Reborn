@@ -19,6 +19,7 @@ namespace Undeads.Code
         public static SpellAsset corrupt_5 = new SpellAsset();
         public static SpellAsset soul_4 = new SpellAsset();
         public static SpellAsset special_5 = new SpellAsset();
+        public static SpellAsset lichlord_summon = new SpellAsset();
         public static void init()
         {
             SpellAsset spell = new SpellAsset();
@@ -94,6 +95,15 @@ namespace Undeads.Code
             spell.min_distance = 0;
             AssetManager.spells.add(spell);
             special_5 = spell;
+
+            spell = new SpellAsset();
+            spell.id = "Undead_LichLord_summon";
+            spell.cost_mana = 40;
+            spell.can_be_used_in_combat = true;
+            spell.action = Undead_Action.LichLord_summon;
+            spell.min_distance = 0;
+            AssetManager.spells.add(spell);
+            lichlord_summon = spell;
         }
 
     }

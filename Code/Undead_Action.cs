@@ -209,9 +209,176 @@ namespace Undeads.Code
 
         public static bool LichLord_action(BaseSimObject pTarget, WorldTile pTile = null)
         {
-            pTarget.a.restoreHealthPercent(0.05f);
-            pTarget.a.restoreManaPercent(0.02f);
+            //唤起：每次判定恢复1%最大生命值与2%最大魔力值
+            float hpRate = 0.01f;
+            float manaRate = 0.02f;
+            if (pTarget.a.hasTrait("LichLord"))
+            {
+                int title = get_LichLord_title(pTarget.a);
+                if (title == 4)
+                {
+                    //腐化之心头衔：唤起效果翻倍
+                    hpRate = 0.02f;
+                    manaRate = 0.04f;
+                }
+                else if (title == 5)
+                {
+                    //毁灭之名头衔：唤起效果减半
+                    hpRate = 0.005f;
+                    manaRate = 0.01f;
+                }
+            }
+            pTarget.a.restoreHealthPercent(hpRate);
+            pTarget.a.restoreManaPercent(manaRate);
             return LichLord_attack(pTarget,null,pTile);
+        }
+
+        //亡灵君主 - 头衔大师
+        public static readonly string[] LichLord_Title_Names = { "瘟疫医生", "尸群领主", "骸骨军团", "灵魂学者", "腐化之心", "毁灭之名" };
+        public static readonly string[] LichLord_Title_Traits = { "Undead_plague_lord", "Undead_zombie_lord", "Undead_skeleton_lord", "Undead_soul_lord", "Undead_corrupt_lord" };
+        private static Dictionary<int, int> _lichlord_title_cache = new Dictionary<int, int>();
+
+        public static int get_LichLord_title(Actor actor)
+        {
+            if (actor.getMaxHealth() <= 0) return 0;
+            float hpPercent = (float)actor.getHealth() / (float)actor.getMaxHealth();
+            if (hpPercent <= 0.20f) return 5;//毁灭之名
+            if (hpPercent > 0.84f) return 0;//瘟疫医生
+            if (hpPercent > 0.68f) return 1;//尸群领主
+            if (hpPercent > 0.52f) return 2;//骸骨军团
+            if (hpPercent > 0.36f) return 3;//灵魂学者
+            return 4;//腐化之心
+        }
+
+        public static string strip_LichLord_title(string name)
+        {
+            foreach (string title in LichLord_Title_Names)
+            {
+                string suffix = "·" + title;
+                if (name.EndsWith(suffix))
+                {
+                    return name.Substring(0, name.Length - suffix.Length);
+                }
+            }
+            return name;
+        }
+
+        public static bool LichLord_title_action(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            Actor actor = pTarget.a;
+            if (!actor.hasTrait("LichLord")) return true;
+            int title = get_LichLord_title(actor);
+            int id = actor.GetHashCode();
+            if (_lichlord_title_cache.TryGetValue(id, out int oldTitle) && oldTitle == title)
+            {
+                return true;
+            }
+            _lichlord_title_cache[id] = title;
+
+            //移除旧头衔特质
+            foreach (string trait in LichLord_Title_Traits)
+            {
+                if (actor.hasTrait(trait)) actor.removeTrait(trait);
+            }
+            //赋予新头衔特质
+            if (title == 5)
+            {
+                //毁灭之名：获得全部头衔特质
+                foreach (string trait in LichLord_Title_Traits)
+                {
+                    actor.addTrait(trait);
+                }
+                actor.addStatusEffect("Undead_Destruction_Name", float.PositiveInfinity);
+            }
+            else
+            {
+                actor.finishStatusEffect("Undead_Destruction_Name");
+                actor.addTrait(LichLord_Title_Traits[title]);
+            }
+
+            //更新姓名后缀
+            string baseName = strip_LichLord_title(actor.getName());
+            actor.setName(baseName + "·" + LichLord_Title_Names[title]);
+            return true;
+        }
+
+        //亡灵君主 - 亡灵召唤：消耗魔力大范围召唤僵尸、骷髅、幽灵并扩散腐化之地
+        public static bool LichLord_summon(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            Actor act = pSelf.a;
+            int range = 10;
+            if (act.hasTrait("LichLord"))
+            {
+                int title = get_LichLord_title(act);
+                if (title == 1 || title == 5) range = 16;//尸群领主/毁灭之名：召唤+6范围
+                else if (title == 2) range = 14;//骸骨军团：召唤+4范围
+                else if (title == 3) range = 12;//灵魂学者：召唤+2范围
+            }
+            World.world.StartCoroutine(Spread_Spell(pSelf, range, 0.1f, LichLord_summon_tile));
+            World.world.StartCoroutine(Spread_Biome(pSelf, "biome_corrupted", range, 0.1f, true));
+            return true;
+        }
+
+        public static bool LichLord_summon_tile(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            Actor act = pTarget.a;
+            int title = act.hasTrait("LichLord") ? get_LichLord_title(act) : 0;
+            Actor actor = null;
+            bool adamantine = (title == 2 || title == 5);//骸骨军团/毁灭之名：精金装备
+
+            if (Randy.randomChance(0.4f))
+            {
+                //召唤骷髅
+                actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: false, pAdultAge: true);
+                EffectsLibrary.spawnAt("fx_create_skeleton", pTile.posV3, 0.1f);
+                string gearTier = adamantine ? "adamantine" : "mythril";
+                if (Randy.randomChance(0.5f)) actor.equipment.weapon.setItem(newItem("sword_" + gearTier, pTarget.kingdom, pTarget.name), actor);
+                else actor.equipment.weapon.setItem(newItem("bow_" + gearTier, pTarget.kingdom, pTarget.name), actor);
+                actor.equipment.armor.setItem(newItem("armor_" + gearTier, pTarget.kingdom, pTarget.name), actor);
+                actor.equipment.boots.setItem(newItem("boots_" + gearTier, pTarget.kingdom, pTarget.name), actor);
+                actor.equipment.helmet.setItem(newItem("helmet_" + gearTier, pTarget.kingdom, pTarget.name), actor);
+                actor.equipment.ring.setItem(newItem("ring_" + gearTier, pTarget.kingdom, pTarget.name), actor);
+                actor.addTrait("veteran");
+            }
+            else if (Randy.randomChance(0.35f))
+            {
+                //召唤僵尸
+                if (Randy.randomChance(0.02f)) actor = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
+                else actor = World.world.units.createNewUnit(zombie_id_strong.GetRandom(), pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
+                EffectsLibrary.spawn("fx_spawn", pTile);
+                actor.addTrait("regeneration");
+                actor.addTrait("hard_skin", true);
+                actor.addTrait("strong", true);
+                actor.addTrait("giant", true);
+                actor.addTrait("fase", true);
+                actor.addTrait("dash");
+            }
+            else
+            {
+                //召唤幽灵
+                actor = World.world.units.createNewUnit("ghost", pTile, false, 0f, null, null, true, false, false, false);
+                actor.subspecies.removeTrait("reproduction_soulborne");
+            }
+
+            if (actor != null)
+            {
+                actor.makeWait(1f);
+                if (act.kingdom != null) actor.joinKingdom(act.kingdom);
+                if (act.city != null && actor.asset.id == "skeleton") actor.joinCity(act.city);
+                actor.addTrait("fire_proof");
+                actor.addTrait("acid_proof");
+                actor.addTrait("immune");
+                actor.removeTrait("zombie");
+                actor.addTrait("Undead_flag");
+
+                //腐化等级
+                string corruptBuff = "Undead_Corrupt_Buff_1";
+                if (actor.asset.id.Contains("zombie") && (title == 1 || title == 5)) corruptBuff = "Undead_Corrupt_Buff_3";//尸群领主：僵尸3级腐化
+                else if (actor.asset.id == "skeleton" && (title == 2 || title == 5)) corruptBuff = "Undead_Corrupt_Buff_2";//骸骨军团：骷髅2级腐化
+                actor.addStatusEffect(corruptBuff, float.PositiveInfinity);
+                pTile.stopFire();
+            }
+            return true;
         }
 
 
@@ -729,8 +896,10 @@ namespace Undeads.Code
         public static bool Soul_Storm_attack(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
             if (pTarget == null || !pTarget.isActor()) return true;
+            float range = 5f;
+            if (pSelf.a.hasTrait("LichLord")) range = 16f;//灵魂学者头衔：灵魂风暴判定范围增加至半径16
             int soulCount = 0;
-            foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 5f, false))
+            foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, range, false))
             {
                 if (actor.Undead_has_soul()) soulCount++;
             }
@@ -757,9 +926,11 @@ namespace Undeads.Code
         {
             if (pTarget == null || !pTarget.isActor()) return true;
             pTarget.a.addStatusEffect("Undead_Plague", pSelf.a, 30f);
+            float chance = 0.4f;
+            if (pSelf.a.hasTrait("LichLord")) chance = 1f;
             foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 3f, false))
             {
-                if (Randy.randomChance(0.4f))
+                if (Randy.randomChance(chance))
                 {
                     actor.addStatusEffect("Undead_Plague", pSelf.a, 30f);
                 }
@@ -790,18 +961,47 @@ namespace Undeads.Code
                 {
                     //友方增益
                     target.restoreHealthPercent(0.02f);
-                    target.addStatusEffect("Undead_Corrupt_Buff_1", 3f);
+                    target.restoreManaPercent(0.02f);
+                    if(ext.pFrom.hasTrait("LichLord"))
+                    {
+                        target.addStatusEffect("Undead_Corrupt_Buff_3", 10f);
+                    }
+                    else target.addStatusEffect("Undead_Corrupt_Buff_1", 5f);
                 }
                 else
                 {
                     //敌方减益
                     target.getHit(Mathf.Max(target.getMaxHealth() * 0.01f, 3), true, AttackType.Plague, pSkipIfShake: false, pCheckDamageReduction: false);
+                    if (ext.pFrom.hasTrait("LichLord"))
+                    {
+                        target.getHit(Mathf.Max(target.getMaxHealth() * 0.03f, 10), false, AttackType.Other, pSkipIfShake: false, pCheckDamageReduction: false);
+                    }
+                    target.addTrait(_cure_traits.GetRandom());
                 }
             }
             else
             {
-                //无来源，默认减益
-                target.getHit(Mathf.Max(target.getMaxHealth() * 0.005f, 1), true, AttackType.Plague, pSkipIfShake: false, pCheckDamageReduction: false);
+                target.finishStatusEffect("Undead_Plague");
+            }
+            return true;
+        }
+
+        public static bool Undead_Plague_action_death(BaseSimObject pTarget, WorldTile pTile = null)
+        {
+            Actor target = pTarget.a;
+            FromExtend ext = null;
+            target._active_status_dict.TryGetValue("Undead_Plague", out Status value);
+            if (value != null) ext = value.GetExtend();
+            if(ext.pFrom != null)
+            {
+                foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 4f, false))
+                {
+                    actor.addStatusEffect("Undead_Plague", ext.pFrom, 30f);
+                    if (actor.kingdom.isEnemy(pTarget.kingdom))
+                    {
+                        actor.getHit(25,true,AttackType.Plague,pCheckDamageReduction:false);
+                    }
+                }
             }
             return true;
         }
@@ -815,7 +1015,7 @@ namespace Undeads.Code
             {
                 if (actor.kingdom == pTarget.kingdom)
                 {
-                    actor.restoreHealthPercent(0.03f);
+                    actor.restoreHealthPercent(0.05f);
                     foreach (string status in _cure_statuses)
                     {
                         if (actor.hasStatus(status)) actor.finishStatusEffect(status);
