@@ -42,9 +42,13 @@
 		<Reference Include="0Harmony">
 			<HintPath>..\..\worldbox_Data\StreamingAssets\mods\NML\Assemblies\0Harmony.dll</HintPath>
 		</Reference>
-		<Reference Include="Unity.Mathematics">
-			<HintPath>..\..\worldbox_Data\Managed\Unity.Mathematics.dll</HintPath>
-		</Reference>
-	</ItemGroup>
+        <Reference Include="Unity.Mathematics">
+            <HintPath>..\..\worldbox_Data\Managed\Unity.Mathematics.dll</HintPath>
+        </Reference>
+        <Reference Include="FMODUnity">
+            <HintPath>..\..\worldbox_Data\Managed\FMODUnity.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+		</ItemGroup>
 
 </Project>

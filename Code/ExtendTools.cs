@@ -26,8 +26,11 @@ namespace Undeads.Code
         {
             @base.addStatusEffect(pID,pOverrideTimer,pColorEffect);
             @base.a._active_status_dict.TryGetValue(pID,out Status stat);
-            FromExtend extend = stat.GetExtend();
-            extend.pFrom = pFrom;
+            if(stat != null)
+            {
+                FromExtend extend = stat.GetExtend();
+                extend.pFrom = pFrom;
+            }
         }
 
         //老马我问你，啥叫野生动物没有灵魂？

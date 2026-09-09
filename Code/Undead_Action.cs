@@ -36,6 +36,10 @@ namespace Undeads.Code
             {
                 return false;
             }
+            if(a.hasTrait("LichLord"))
+            {
+                return false;
+            }
             bool flag = false;
             if (!string.IsNullOrEmpty(a.asset.skeleton_id))
             {
@@ -169,7 +173,7 @@ namespace Undeads.Code
         {
             pTarget.a._active_status_dict.TryGetValue("whisper_of_death", out Status value);
             FromExtend ext = value?.GetExtend();
-            pTarget.a.data.health = Mathf.Max(0, pTarget.a.data.health - Mathf.Max((int)(pTarget.a.getMaxHealth() * 0.05), 2));
+            pTarget.a.data.health = Mathf.Max(0, pTarget.a.data.health - Mathf.Max((int)(pTarget.a.getMaxHealth() * 0.055), 2));
             if (pTarget.a.data.health == 0)
             {
                 if (value != null && ext != null)
@@ -186,21 +190,46 @@ namespace Undeads.Code
         public static bool LichLord_attack(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
             if(pTarget != null && pTarget.isActor() && pTarget.a.data.health <= 0) turn_into_Undeads(pTarget.a, pTile, pSelf);
+            int title = get_LichLord_title(pSelf.a);
             if (pSelf.a.isAlive() && pTarget != null)
             {
                 foreach(Actor act in Finder.getUnitsFromChunk(pTarget.current_tile, 2, 10))
                 {
                     if (act.kingdom != pSelf.a.kingdom && !act.hasTag("Undead"))
                     {
-                        
-                        act.data.health = Mathf.Max(0, act.data.health - Mathf.Max((int)(act.getMaxHealth() * 0.1), 20));
-                        if (act.data.health == 0)
+                        if(title == 5)//毁灭之名：改血+即死
                         {
-                            bool flag = turn_into_Undeads(act, pTile,pSelf);
-                            act.die(flag, AttackType.Plague);
-                            return true;
+                            act.data.health = Mathf.Max(0, act.data.health - Mathf.Max((int)(act.getMaxHealth() * 0.1), 20));
+                            if (act.data.health == 0)
+                            {
+                                bool flag = turn_into_Undeads(act, pTile, pSelf);
+                                act.die(flag, AttackType.Plague);
+                                return true;
+                            }
+                            act.addStatusEffect("whisper_of_death", pSelf.a);
                         }
-                        act.addStatusEffect("whisper_of_death",pSelf.a);
+                        else if(title == 0) //瘟疫医生
+                        {
+                            if (Randy.randomChance(0.3f)) act.addStatusEffect("ash_fever");
+                        }
+                        else if (title == 1)//尸群领主
+                        {
+                            if (Randy.randomChance(0.3f)) act.addStatusEffect("cough");
+                            if (Randy.randomChance(0.3f)) act.addStatusEffect("poisoned");
+                        }
+                        else if (title == 2)//骸骨军团
+                        {
+                            if (Randy.randomChance(0.3f)) act.addTrait("one_eyed");
+                            if (Randy.randomChance(0.3f)) act.addTrait("crippled");
+                        }
+                        else if (title == 3)//灵魂学者
+                        {
+                            if (Randy.randomChance(0.5f)) act.addStatusEffect("cursed");
+                        }
+                        else if (title == 4)//腐化之心：吸血
+                        {
+                            pSelf.a.restoreHealth((int)Mathf.Max(pSelf.a.getMaxHealth() * 0.001f, 1));
+                        }
                     }
                 }
             }
@@ -249,7 +278,15 @@ namespace Undeads.Code
             if (hpPercent > 0.36f) return 3;//灵魂学者
             return 4;//腐化之心
         }
-
+        public static int get_LichLord_title(float percent)
+        {
+            if (percent <= 0.20f) return 5;//毁灭之名
+            if (percent > 0.84f) return 0;//瘟疫医生
+            if (percent > 0.68f) return 1;//尸群领主
+            if (percent > 0.52f) return 2;//骸骨军团
+            if (percent > 0.36f) return 3;//灵魂学者
+            return 4;//腐化之心
+        }
         public static string strip_LichLord_title(string name)
         {
             foreach (string title in LichLord_Title_Names)
@@ -302,7 +339,7 @@ namespace Undeads.Code
             return true;
         }
 
-        //亡灵君主 - 亡灵召唤：消耗魔力大范围召唤僵尸、骷髅、幽灵并扩散腐化之地
+        //亡灵君主 - 亡灵召唤：消耗魔力大范围召唤僵尸、骷髅、幽灵
         public static bool LichLord_summon(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
             Actor act = pSelf.a;
@@ -310,12 +347,12 @@ namespace Undeads.Code
             if (act.hasTrait("LichLord"))
             {
                 int title = get_LichLord_title(act);
-                if (title == 1 || title == 5) range = 16;//尸群领主/毁灭之名：召唤+6范围
+                if (title == 1 || title == 5) range = 16;//尸群领主：召唤+6范围
                 else if (title == 2) range = 14;//骸骨军团：召唤+4范围
                 else if (title == 3) range = 12;//灵魂学者：召唤+2范围
+                else if (title == 5) range = 20; //毁灭之名：召唤+10范围
             }
-            World.world.StartCoroutine(Spread_Spell(pSelf, range, 0.1f, LichLord_summon_tile));
-            World.world.StartCoroutine(Spread_Biome(pSelf, "biome_corrupted", range, 0.1f, true));
+            World.world.StartCoroutine(Spread_Spell(pSelf, range, 0.05f, LichLord_summon_tile));
             return true;
         }
 
@@ -325,8 +362,25 @@ namespace Undeads.Code
             int title = act.hasTrait("LichLord") ? get_LichLord_title(act) : 0;
             Actor actor = null;
             bool adamantine = (title == 2 || title == 5);//骸骨军团/毁灭之名：精金装备
+            float skeleton_chance = 0.4f;
+            float zombie_chance = 0.35f;
+            if(title == 1)
+            {
+                skeleton_chance = 0f;
+                zombie_chance = 1f;
+            }
+            if(title == 2)
+            {
+                skeleton_chance = 1f;
+                zombie_chance = 0f;
+            }
+            if(title == 3)
+            {
+                skeleton_chance = 0f;
+                zombie_chance = 0f;
+            }
 
-            if (Randy.randomChance(0.4f))
+            if (Randy.randomChance(skeleton_chance))
             {
                 //召唤骷髅
                 actor = World.world.units.createNewUnit("skeleton", pTile, pMiracleSpawn: false, 0f, null, null, pSpawnWithItems: false, pAdultAge: true);
@@ -340,7 +394,7 @@ namespace Undeads.Code
                 actor.equipment.ring.setItem(newItem("ring_" + gearTier, pTarget.kingdom, pTarget.name), actor);
                 actor.addTrait("veteran");
             }
-            else if (Randy.randomChance(0.35f))
+            else if (Randy.randomChance(zombie_chance))
             {
                 //召唤僵尸
                 if (Randy.randomChance(0.02f)) actor = World.world.units.createNewUnit("zombie_dragon", pTile, pMiracleSpawn: false, 0f, null, pSpawnWithItems: true);
@@ -402,7 +456,7 @@ namespace Undeads.Code
                 }
             }
             if(cnt >= 30) pTarget.a.addStatusEffect("Undead_lord_of_army");
-            pTarget.a.restoreHealthPercent(cnt/200);
+            if (!pTarget.a.hasTrait("LichLord")) pTarget.a.restoreHealthPercent(cnt/200);
             return true;
         }
 
@@ -487,14 +541,14 @@ namespace Undeads.Code
                 if (pTarget.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_5_corrupt, 5))
                 {
                     pTarget.addStatusEffect("Undead_Corrupt_Buff_3");
-                    pTarget.a.restoreHealthPercent(0.04f);
+                    if (!pTarget.a.hasTrait("LichLord")) pTarget.a.restoreHealthPercent(0.04f);
                     pTarget.a.restoreManaPercent(0.04f);
                     pTarget.a.restoreStaminaPercent(0.04f);
                 }
                 else if (pTarget.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_4_corrupt, 4))
                 {
                     pTarget.addStatusEffect("Undead_Corrupt_Buff_2");
-                    pTarget.a.restoreHealthPercent(0.02f);
+                    if (!pTarget.a.hasTrait("LichLord")) pTarget.a.restoreHealthPercent(0.02f);
                     pTarget.a.restoreManaPercent(0.02f);
                     pTarget.a.restoreStaminaPercent(0.02f);
                 }
@@ -502,7 +556,7 @@ namespace Undeads.Code
                 else if (pTarget.a.religion.has_Undead_Trait(SUndead.Undead_Phrase_3_corrupt, 3))
                 {
                     pTarget.addStatusEffect("Undead_Corrupt_Buff_1");
-                    pTarget.a.restoreHealthPercent(0.01f);
+                    if (!pTarget.a.hasTrait("LichLord")) pTarget.a.restoreHealthPercent(0.01f);
                     pTarget.a.restoreManaPercent(0.01f);
                     pTarget.a.restoreStaminaPercent(0.01f);
                 }
@@ -609,19 +663,19 @@ namespace Undeads.Code
         {
             if(pTarget.a.hasStatus("Undead_Corrupt_Buff_3"))
             {
-                pTarget.a.restoreHealthPercent(0.04f);
+                if (!pTarget.a.hasTrait("LichLord")) pTarget.a.restoreHealthPercent(0.04f);
                 pTarget.a.restoreManaPercent(0.04f);
                 pTarget.a.restoreStaminaPercent(0.04f);
             }
             else if (pTarget.a.hasStatus("Undead_Corrupt_Buff_2"))
             {
-                pTarget.a.restoreHealthPercent(0.02f);
+                if (!pTarget.a.hasTrait("LichLord")) pTarget.a.restoreHealthPercent(0.02f);
                 pTarget.a.restoreManaPercent(0.02f);
                 pTarget.a.restoreStaminaPercent(0.02f);
             }
             else if (pTarget.a.hasStatus("Undead_Corrupt_Buff_1"))
             {
-                pTarget.a.restoreHealthPercent(0.01f);
+                if (!pTarget.a.hasTrait("LichLord")) pTarget.a.restoreHealthPercent(0.01f);
                 pTarget.a.restoreManaPercent(0.01f);
                 pTarget.a.restoreStaminaPercent(0.01f);
             }
@@ -960,8 +1014,12 @@ namespace Undeads.Code
                 if (target.kingdom == ext.pFrom.kingdom)
                 {
                     //友方增益
-                    target.restoreHealthPercent(0.02f);
-                    target.restoreManaPercent(0.02f);
+                    target.addTrait("immune");
+                    if(!target.hasTrait("LichLord"))
+                    {
+                        target.restoreHealthPercent(0.02f);
+                        target.restoreManaPercent(0.02f);
+                    }
                     if(ext.pFrom.hasTrait("LichLord"))
                     {
                         target.addStatusEffect("Undead_Corrupt_Buff_3", 10f);
@@ -1015,7 +1073,7 @@ namespace Undeads.Code
             {
                 if (actor.kingdom == pTarget.kingdom)
                 {
-                    actor.restoreHealthPercent(0.05f);
+                    if(!actor.hasTrait("LichLord"))actor.restoreHealthPercent(0.05f);
                     foreach (string status in _cure_statuses)
                     {
                         if (actor.hasStatus(status)) actor.finishStatusEffect(status);

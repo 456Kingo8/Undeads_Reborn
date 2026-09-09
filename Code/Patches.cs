@@ -17,20 +17,16 @@ namespace Undeads.Code
         public static void init()
         {
             Harmony.CreateAndPatchAll(typeof(Patches));
+            Harmony.CreateAndPatchAll(typeof(LichLord_Patch));
         }
         #region Actor
         [HarmonyPrefix]
+        [HarmonyPriority(801)]
         [HarmonyPatch(typeof(Actor), "getHit")]
         public static bool Actor_getHit(Actor __instance, ref float pDamage, ref AttackType pAttackType, ref BaseSimObject pAttacker, ref bool pSkipIfShake, ref bool pMetallicWeapon, ref bool pCheckDamageReduction)
         {
-            //腐化之心 - 坚不可摧：受伤后获得0.2s势不可挡
-            if (__instance.hasTrait("Undead_corrupt_lord"))
-            {
-                __instance.addStatusEffect("unstoppable", 0.2f);
-            }
             if (__instance.hasTrait("LichLord"))
             {
-                __instance.addStatusEffect("unstoppable", 3f);
                 //限伤：伤害不会高于最大生命值的5%（毁灭之名头衔为2.5%）
                 float maxDamageRate = 0.05f;
                 if (Undead_Action.get_LichLord_title(__instance) == 5) maxDamageRate = 0.025f;
@@ -189,9 +185,16 @@ namespace Undeads.Code
         }
 
         [HarmonyPrefix]
+        [HarmonyPriority(Priority.First+1)]
         [HarmonyPatch(typeof(Actor), "die")]
         public static bool Actor_die(Actor __instance, ref AttackType pType, ref bool pCountDeath, ref bool pLogFavorite)
         {
+            if (__instance.hasTrait("LichLord"))
+            {
+                if (Undeads_Reborn.check_health(__instance)) return false;
+            }
+
+
             if (__instance.hasStatus("Undead_Battle_Continue") && !__instance.hasTrait("death_mark")) return false;
 
             if (__instance.hasReligion() && !__instance.hasStatus("Ark_Cooldown") && __instance.religion.has_Undead_Trait(SUndead.Undead_Phrase_5_soul, 5) && !__instance.hasTrait("death_mark"))
@@ -219,7 +222,7 @@ namespace Undeads.Code
                 return false;
             }
 
-            if (__instance.isAlive() && __instance.hasTrait("LichLord") && __instance.data.health == 0)
+            if (__instance.hasTrait("LichLord") && __instance.data.health == 0)
             {
                 BiomeAsset biomeAsset = AssetManager.biome_library.get("biome_corrupted");
                 WorldTile worldTile = null;
@@ -237,7 +240,6 @@ namespace Undeads.Code
                 __instance.cancelAllBeh();
                 __instance.spawnOn(worldTile);
                 __instance.setHealth(1);//生命强制变为1，防止进入无敌状态
-                __instance.makeStunned(2f);//提供2秒眩晕
                 World.world.StartCoroutine(Undead_Action.Spread_Biome(__instance, "biome_grass", 8, 0.2f, true, restore));
                 return false;
 
@@ -271,6 +273,35 @@ namespace Undeads.Code
             return;
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Actor), "getHit")]
+        public static void Actor_getHit(Actor __instance)
+        {
+            //腐化之心 - 坚不可摧：受伤后获得0.2s所向披靡
+            if (__instance.hasTrait("Undead_corrupt_lord"))
+            {
+                __instance.addStatusEffect("invincible", 0.2f);
+            }
+            if (__instance.hasTrait("LichLord"))
+            {
+                __instance.addStatusEffect("invincible", 1f);
+                if (!Undeads_Reborn.LichLord_list.Contains(__instance.id)) Undeads_Reborn.LichLord_list.Add(__instance.id);
+                Undead_Action.LichLord_title_action(__instance, __instance.current_tile);
+                if (!Undead_Music.IsPlaying()) Undeads_Reborn.I.PlayLichLordMusic();
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Actor), "restoreHealth")]
+        public static void Actor_restoreHealth(Actor __instance)
+        {
+            if (__instance.hasTrait("LichLord"))
+            {
+                if(!Undeads_Reborn.LichLord_list.Contains(__instance.id)) Undeads_Reborn.LichLord_list.Add(__instance.id);
+                Undead_Action.LichLord_title_action(__instance, __instance.current_tile);
+                if (!Undead_Music.IsPlaying()) Undeads_Reborn.I.PlayLichLordMusic();
+            }
+        }
 
         #region 给又臭又长的原版数据更新加上宗教数值
         [HarmonyPrefix]
@@ -732,7 +763,5 @@ namespace Undeads.Code
             }
             return true;
         }
-
-
     }
 }

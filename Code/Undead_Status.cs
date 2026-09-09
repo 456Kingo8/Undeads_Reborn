@@ -34,6 +34,7 @@ namespace Undeads.Code
             asset.id = "Undead_Corrupt_Buff_1";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 10f;
+            asset.allow_timer_reset = true;
             asset.locale_id = "Undead_Corrupt_Buff_1_id";
             asset.locale_description = "Undead_Corrupt_Buff_1_des";
             asset.base_stats = new BaseStats();
@@ -49,6 +50,7 @@ namespace Undeads.Code
             asset.id = "Undead_Corrupt_Buff_2";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 20f;
+            asset.allow_timer_reset = true;
             asset.locale_id = "Undead_Corrupt_Buff_2_id";
             asset.locale_description = "Undead_Corrupt_Buff_2_des";
             asset.base_stats["multiplier_damage"] = 0.5f;
@@ -63,6 +65,7 @@ namespace Undeads.Code
             asset.id = "Undead_Corrupt_Buff_3";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 30f;
+            asset.allow_timer_reset = true;
             asset.locale_id = "Undead_Corrupt_Buff_3_id";
             asset.locale_description = "Undead_Corrupt_Buff_3_des";
             asset.base_stats["multiplier_damage"] = 1f;
@@ -85,6 +88,7 @@ namespace Undeads.Code
             asset.id = "Undead_lord_of_army";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 20f;
+            asset.allow_timer_reset = true;
             asset.locale_id = "Undead_lord_of_army_id";
             asset.locale_description = "Undead_lord_of_army_des";
             asset.base_stats["multiplier_damage"] = 0.6f;
@@ -97,6 +101,7 @@ namespace Undeads.Code
             asset.id = "Undead_army_of_lord";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 10f;
+            asset.allow_timer_reset = true;
             asset.locale_id = "Undead_army_of_lord_id";
             asset.locale_description = "Undead_army_of_lord_des";
             asset.base_stats["multiplier_damage"] = 0.2f;
@@ -108,18 +113,19 @@ namespace Undeads.Code
             asset = new StatusAsset();
             asset.id = "Undead_Destruction_Name";
             asset.path_icon = "Icons/iconNecrolord";
-            asset.duration = 99999f;
+            asset.duration = float.PositiveInfinity;
             asset.locale_id = "Undead_Destruction_Name_id";
             asset.locale_description = "Undead_Destruction_Name_des";
             asset.base_stats = new BaseStats();
             asset.base_stats["multiplier_damage"] = 1f;//攻击力翻倍
-            asset.base_stats["multiplier_attack_speed"] = 1f;//攻速翻倍
+            asset.base_stats["multiplier_attack_speed"] = 4f;//攻速翻4倍
             AssetManager.status.add(asset);
 
             asset = new StatusAsset();
             asset.id = "Undead_Corrupt_Call";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 10f;
+            asset.allow_timer_reset = true;
             asset.locale_id = "Undead_Corrupt_Call_id";
             asset.locale_description = "Undead_Corrupt_Call_des";
             asset.base_stats = new BaseStats();
@@ -131,10 +137,12 @@ namespace Undeads.Code
             asset.id = "Undead_Plague";
             asset.path_icon = "Icons/iconNecromancer";
             asset.duration = 30f;
+            asset.allow_timer_reset = true;
             asset.locale_id = "Undead_Plague_id";
             asset.locale_description = "Undead_Plague_des";
             asset.action = Undead_Action.Undead_Plague_action;
             asset.action_death = Undead_Action.Undead_Plague_action_death;
+            asset.tier = StatusTier.None;
             asset.action_interval = 1f;
             AssetManager.status.add(asset);
 
