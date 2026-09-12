@@ -951,7 +951,7 @@ namespace Undeads.Code
         {
             if (pTarget == null || !pTarget.isActor()) return true;
             float range = 5f;
-            if (pSelf.a.hasTrait("LichLord")) range = 16f;//灵魂学者头衔：灵魂风暴判定范围增加至半径16
+            if (pSelf.a.hasTrait("LichLord") && get_LichLord_title(pSelf.a) == 3) range = 16f;//灵魂学者头衔：灵魂风暴判定范围增加至半径16
             int soulCount = 0;
             foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, range, false))
             {
