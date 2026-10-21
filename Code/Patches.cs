@@ -27,13 +27,29 @@ namespace Undeads.Code
         {
             if (__instance.hasTrait("LichLord"))
             {
-                //限伤：伤害不会高于最大生命值的5%（毁灭之名头衔为2.5%）
-                float maxDamageRate = 0.05f;
-                if (Undead_Action.get_LichLord_title(__instance) == 5) maxDamageRate = 0.025f;
+                //限伤：伤害不会高于最大生命值的7.5%（毁灭之名头衔为5%）
+                float maxDamageRate = 0.075f;
+                if (Undead_Action.get_LichLord_title(__instance) == 5) maxDamageRate = 0.05f;
                 float maxDamage = __instance.getMaxHealth() * maxDamageRate;
                 if(pDamage > maxDamage)
                 {
                     pDamage = maxDamage;
+                    if(Randy.randomChance(0.05f))
+                    {
+                        WorldTile worldTile = __instance.current_tile.neighboursAll.GetRandom().neighboursAll.GetRandom();
+                        if(worldTile != null)
+                        {
+                            string text = "fx_teleport_red";
+                            EffectsLibrary.spawnAt(text, __instance.current_position, __instance.stats["scale"]);
+                            BaseEffect baseEffect = EffectsLibrary.spawnAt(text, worldTile.posV3, __instance.stats["scale"]);
+                            if (baseEffect != null)
+                            {
+                                baseEffect.sprite_animation.setFrameIndex(9);
+                            }
+                            __instance.spawnOn(worldTile);
+                        }
+                        
+                    }
                 }
             }
             bool isDestruction = __instance.hasTrait("LichLord") && Undead_Action.get_LichLord_title(__instance) == 5;
@@ -277,23 +293,34 @@ namespace Undeads.Code
         [HarmonyPatch(typeof(Actor), "getHit")]
         public static void Actor_getHit(Actor __instance)
         {
+            if (__instance.hasTrait("LichLord"))
+            {
+                if (!Undeads_Reborn.LichLord_list.Contains(__instance.id)) Undeads_Reborn.LichLord_list.Add(__instance.id);
+                Undead_Action.LichLord_title_action(__instance, __instance.current_tile);
+                Undeads_Reborn.check_health(__instance);
+                if (!Undead_Music.IsPlaying()) Undeads_Reborn.I.PlayLichLordMusic();
+            }
             //腐化之心 - 坚不可摧：受伤后获得0.2s所向披靡
-            if (__instance.hasTrait("Undead_corrupt_lord"))
+            if (__instance.hasTrait("Undead_corrupt_lord") && !__instance.hasTrait("LichLord"))
             {
                 __instance.addStatusEffect("invincible", 0.2f);
             }
-            if (__instance.hasTrait("LichLord"))
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Actor), "restoreHealth")]
+        public static bool Actor_restoreHealth_Prefix(Actor __instance)
+        {
+            if (__instance.hasTrait("LichLord") && __instance.hasStatus("invincible"))
             {
-                __instance.addStatusEffect("invincible", 1f);
-                if (!Undeads_Reborn.LichLord_list.Contains(__instance.id)) Undeads_Reborn.LichLord_list.Add(__instance.id);
-                Undead_Action.LichLord_title_action(__instance, __instance.current_tile);
-                if (!Undead_Music.IsPlaying()) Undeads_Reborn.I.PlayLichLordMusic();
+                return false;
             }
+            return true;
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Actor), "restoreHealth")]
-        public static void Actor_restoreHealth(Actor __instance)
+        public static void Actor_restoreHealth_Postfix(Actor __instance)
         {
             if (__instance.hasTrait("LichLord"))
             {

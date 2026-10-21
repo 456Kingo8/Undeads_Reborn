@@ -24,11 +24,12 @@ namespace Undeads.Code
             };
             LichLord.base_stats = new BaseStats();
             LichLord.base_stats["health"] = 666f;
-            LichLord.base_stats["armor"] = 0.2f;
+            LichLord.base_stats["multiplier_health"] = 0.66f;
+            LichLord.base_stats["armor"] = 0.66f;
             LichLord.base_stats["damage"] = 66f;
-            LichLord.base_stats["speed"] = 20f;
+            LichLord.base_stats["speed"] = 6f;
             LichLord.base_stats["multiplier_speed"] = 0.66f;
-            LichLord.base_stats["attack_speed"] = 66f;
+            LichLord.base_stats["attack_speed"] = 6f;
             LichLord.base_stats.addTag("Undead");
             LichLord.spells = new List<SpellAsset>() { Undead_Spell.lichlord_summon };
             //LichLord.decisions_assets = new DecisionAsset[] { Undead_Decision.speard_curse_biome };

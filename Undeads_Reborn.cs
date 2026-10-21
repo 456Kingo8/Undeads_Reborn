@@ -2,7 +2,6 @@
 using NeoModLoader.api;
 using NeoModLoader.api.attributes;
 using NeoModLoader.General;
-using NeoModLoader.General.Event.Listeners;
 using NeoModLoader.utils;
 using System.IO;
 using Undeads.Code;
@@ -120,25 +119,29 @@ namespace Undeads
 
         }
 
+        [Hotfixable]
         public static bool check_health(Actor actor)
         {
             bool flag = false;
             long l = actor.id;
             if (LichLord_health_record.ContainsKey(l))
             {
-                if (LichLord_health_record[l] - actor.getHealthRatio() > 0.05f)
+                if (LichLord_health_record[l] - actor.getHealthRatio() > 0.075f)
                 {
                     flag = true;
-                    MonoBehaviour.print("debug");
-                    float eps = 0.05f;
+                    float eps = 0.075f;
+                    if (Undead_Action.get_LichLord_title(LichLord_health_record[l]) == 5) eps = 0.05f;
                     if (actor.hasStatus("invincible")) eps = 0f;
-                    else if (Undead_Action.get_LichLord_title(LichLord_health_record[l]) == 5) eps = 0.025f;
                     actor.data.health = (int)Mathf.Ceil(actor.getMaxHealth() * (LichLord_health_record[l] - eps));
-                    if (eps > 0 && !actor.hasStatus("invincible"))
-                    {
-                        actor.addStatusEffect("invincible", 1f);
-                    }
+
                     if(actor.data.health > 0) actor._alive = true;
+                }
+                if(LichLord_health_record[l] - actor.getHealthRatio() > 0.001d)
+                {
+                    if (!actor.hasStatus("invincible"))
+                    {
+                        actor.addStatusEffect("invincible", 0.66f);
+                    }
                 }
                 LichLord_health_record[l] = actor.getHealthRatio();
             }

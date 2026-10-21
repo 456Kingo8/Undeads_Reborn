@@ -193,13 +193,13 @@ namespace Undeads.Code
             int title = get_LichLord_title(pSelf.a);
             if (pSelf.a.isAlive() && pTarget != null)
             {
-                foreach(Actor act in Finder.getUnitsFromChunk(pTarget.current_tile, 2, 10))
+                foreach(Actor act in Finder.getUnitsFromChunk(pTarget.current_tile, 2, 4))
                 {
                     if (act.kingdom != pSelf.a.kingdom && !act.hasTag("Undead"))
                     {
                         if(title == 5)//毁灭之名：改血+即死
                         {
-                            act.data.health = Mathf.Max(0, act.data.health - Mathf.Max((int)(act.getMaxHealth() * 0.1), 20));
+                            act.data.health = Mathf.Max(0, act.data.health - Mathf.Max((int)(act.getMaxHealth() * 0.066), 20));
                             if (act.data.health == 0)
                             {
                                 bool flag = turn_into_Undeads(act, pTile, pSelf);
@@ -241,9 +241,9 @@ namespace Undeads.Code
             //唤起：每次判定恢复1%最大生命值与2%最大魔力值
             float hpRate = 0.01f;
             float manaRate = 0.02f;
+            int title = get_LichLord_title(pTarget.a);
             if (pTarget.a.hasTrait("LichLord"))
             {
-                int title = get_LichLord_title(pTarget.a);
                 if (title == 4)
                 {
                     //腐化之心头衔：唤起效果翻倍
@@ -259,7 +259,35 @@ namespace Undeads.Code
             }
             pTarget.a.restoreHealthPercent(hpRate);
             pTarget.a.restoreManaPercent(manaRate);
-            return LichLord_attack(pTarget,null,pTile);
+            
+            if (pTarget.a.isAlive() && pTarget != null)
+            {
+                foreach (Actor act in Finder.getUnitsFromChunk(pTarget.current_tile, 2, 6))
+                {
+                    if (act.kingdom != pTarget.a.kingdom && !act.hasTag("Undead"))
+                    {
+                        if (title == 0 || title == 5) //瘟疫医生
+                        {
+                            if (Randy.randomChance(0.3f)) act.addStatusEffect("ash_fever");
+                        }
+                        else if (title == 1 || title == 5)//尸群领主
+                        {
+                            if (Randy.randomChance(0.3f)) act.addStatusEffect("cough");
+                            if (Randy.randomChance(0.3f)) act.addStatusEffect("poisoned");
+                        }
+                        else if (title == 2 || title == 5)//骸骨军团
+                        {
+                            if (Randy.randomChance(0.3f)) act.addTrait("one_eyed");
+                            if (Randy.randomChance(0.3f)) act.addTrait("crippled");
+                        }
+                        else if (title == 3 || title == 5)//灵魂学者
+                        {
+                            if (Randy.randomChance(0.5f)) act.addStatusEffect("cursed");
+                        }
+                    }
+                }
+            }
+            return true;
         }
 
         //亡灵君主 - 头衔大师
@@ -439,6 +467,7 @@ namespace Undeads.Code
         [Hotfixable]
         public static bool summon_undead(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile = null)
         {
+            if (pSelf.a.hasTrait("LichLord")) return false;
             World.world.StartCoroutine(Spread_Spell(pSelf, 6 , 0.1f , lord_summon));
             return true;
         }
@@ -1011,7 +1040,7 @@ namespace Undeads.Code
             if (value != null) ext = value.GetExtend();
             if (ext != null && ext.pFrom != null && ext.pFrom.kingdom != null)
             {
-                if (target.kingdom == ext.pFrom.kingdom)
+                if(! ext.pFrom.kingdom.isEnemy(target.kingdom))
                 {
                     //友方增益
                     target.addTrait("immune");
@@ -1066,7 +1095,10 @@ namespace Undeads.Code
 
         //瘟疫医生 - 治愈之光：治疗半径6格内友方，移除负面特质和状态
         private static readonly string[] _cure_statuses = { "cursed", "poisoned", "cough", "ash_fever", "whisper_of_death" };
-        private static readonly string[] _cure_traits = { "infected", "mush_spores", "tumor_infection", "one_eyed", "crippled" };
+        private static readonly string[] _cure_traits = {  "one_eyed", "crippled" };
+
+        private static readonly string[] _cure_traits_infect = { "infected", "mush_spores", "tumor_infection" };
+
         public static bool Heal_Light_action(BaseSimObject pTarget, WorldTile pTile = null)
         {
             foreach (Actor actor in Finder.getUnitsFromChunk(pTarget.current_tile, 1, 6f, false))
@@ -1079,6 +1111,10 @@ namespace Undeads.Code
                         if (actor.hasStatus(status)) actor.finishStatusEffect(status);
                     }
                     foreach (string trait in _cure_traits)
+                    {
+                        if (actor.hasTrait(trait)) actor.removeTrait(trait);
+                    }
+                    foreach (string trait in _cure_traits_infect)
                     {
                         if (actor.hasTrait(trait)) actor.removeTrait(trait);
                     }

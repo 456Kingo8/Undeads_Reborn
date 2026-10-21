@@ -10,6 +10,13 @@ namespace Undeads.Code
     {
         public static void init()
         {
+            foreach(var t in AssetManager.status.list)
+            {
+                if(t.id != "invincible")
+                trait_add_to_status_array(t.id, "LichLord");
+            }
+
+
             StatusAsset asset = new StatusAsset();
             asset.id = "whisper_of_death";
             asset.path_icon = "Icons/iconNewhisper";
@@ -44,6 +51,7 @@ namespace Undeads.Code
             asset.base_stats["armor"] = 10f;
             asset.action = Undead_Action.Corrput_Buff_action;
             asset.action_interval = 0.8f;
+            asset.opposite_traits = new string[] {"LichLord"};
             AssetManager.status.add(asset);
 
             asset = new StatusAsset();
@@ -59,6 +67,7 @@ namespace Undeads.Code
             asset.base_stats["armor"] = 20f;
             asset.action = Undead_Action.Corrput_Buff_action;
             asset.action_interval = 0.75f;
+            asset.opposite_traits = new string[] { "LichLord" };
             AssetManager.status.add(asset);
 
             asset = new StatusAsset();
@@ -74,6 +83,7 @@ namespace Undeads.Code
             asset.base_stats["armor"] = 30f;
             asset.action = Undead_Action.Corrput_Buff_action;
             asset.action_interval = 0.5f;
+            asset.opposite_traits = new string[] { "LichLord" };
             AssetManager.status.add(asset);
 
             asset = new StatusAsset();
@@ -95,6 +105,7 @@ namespace Undeads.Code
             asset.base_stats["multiplier_health"] = 0.6f;
             asset.base_stats["multiplier_speed"] = 0.15f;
             asset.base_stats["armor"] = 20f;
+            asset.opposite_traits = new string[] { "LichLord" };
             AssetManager.status.add(asset);
 
             asset = new StatusAsset();
@@ -118,7 +129,7 @@ namespace Undeads.Code
             asset.locale_description = "Undead_Destruction_Name_des";
             asset.base_stats = new BaseStats();
             asset.base_stats["multiplier_damage"] = 1f;//攻击力翻倍
-            asset.base_stats["multiplier_attack_speed"] = 4f;//攻速翻4倍
+            asset.base_stats["multiplier_attack_speed"] = 1f;//攻速翻倍
             AssetManager.status.add(asset);
 
             asset = new StatusAsset();
@@ -147,6 +158,25 @@ namespace Undeads.Code
             AssetManager.status.add(asset);
 
 
+        }
+
+        public static void trait_add_to_status_array(string status_id, string addition_id)
+        {
+            var status = AssetManager.status.get(status_id);
+            if (status.opposite_traits != null)
+            {
+                int cnt = status.opposite_traits.Count();
+                var strings = new string[cnt + 1];
+
+
+                for (int i = 0; i < cnt; i++)
+                {
+                    strings[i] = status.opposite_traits[i];
+                }
+                strings[cnt] = addition_id;
+                status.opposite_traits = strings;
+            }
+            else status.opposite_traits = new string[] { addition_id };
         }
     }
 }
